@@ -1,0 +1,24 @@
+# Build outputs
+build/
+.gradle/
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Secrets — never commit
+.env
+*.env
+
+# Keep the example tracked so others know what's expected
+!.env.example
+
+# Local feed config (per-user / per-deploy overrides)
+feeds.json
+!feeds.json.example

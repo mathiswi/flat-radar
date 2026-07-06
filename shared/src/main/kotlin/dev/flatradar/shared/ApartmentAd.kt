@@ -1,0 +1,27 @@
+package dev.flatradar.shared
+
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ApartmentAd(
+    val id: String,
+    val title: String,
+    val size: Double?,
+    val rooms: Double?,
+    val bedrooms: Int? = null,
+    val bathrooms: Int? = null,
+    val floor: String? = null,
+    val apartmentType: String? = null,
+    val availableFrom: LocalDate? = null,
+    val deposit: Int?,
+    val baseRent: Int?,
+    val sideCosts: Int?,
+    val heatingCosts: Int?,
+    val totalRent: Int?,
+    val location: String,
+    val url: String,
+    val source: String,
+    val district: String? = null,
+    val timestamp: Long
+)
