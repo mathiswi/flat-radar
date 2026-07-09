@@ -26,6 +26,7 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.ktor:ktor-server-test-host:3.1.3")
+    testImplementation("com.h2database:h2:2.3.232")
 }
 
 kotlin {

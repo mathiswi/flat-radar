@@ -1,11 +1,12 @@
 package dev.flatradar.backend
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.sql.DataSource
 
 /**
@@ -23,20 +24,22 @@ import javax.sql.DataSource
 fun Route.healthRoutes(dataSource: DataSource) {
     route("/api/v1") {
         get("/health") {
-            call.respond(mapOf("status" to "up"))
+            call.respond(StatusResponse("up"))
         }
 
         get("/ready") {
-            val ok = try {
-                dataSource.connection.use { it.isValid(2) }
-            } catch (e: Exception) {
-                System.err.println("[ready] DB check failed: ${e.message}")
-                false
+            val error = withContext(Dispatchers.IO) {
+                try {
+                    dataSource.connection.use { if (it.isValid(2)) null else "connection not valid" }
+                } catch (e: Exception) {
+                    System.err.println("[ready] DB check failed: ${e.message}")
+                    e.message ?: "unknown error"
+                }
             }
-            if (ok) {
-                call.respond(mapOf("status" to "ready"))
+            if (error == null) {
+                call.respond(ReadyResponse("ready"))
             } else {
-                call.respond(HttpStatusCode.ServiceUnavailable, mapOf("status" to "not_ready"))
+                call.respond(HttpStatusCode.ServiceUnavailable, ReadyResponse("not_ready", error))
             }
         }
     }

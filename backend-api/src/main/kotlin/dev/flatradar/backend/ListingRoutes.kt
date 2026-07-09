@@ -8,33 +8,35 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 fun Route.listingRoutes(repository: ListingRepository) {
     route("/api/v1/listings") {
         post("/ids") {
             val ids = call.receive<List<String>>()
-            val existing = repository.existingIds(ids)
+            val existing = withContext(Dispatchers.IO) { repository.existingIds(ids) }
             call.respond(existing.toList())
         }
 
         post {
             val ad = call.receive<ApartmentAd>()
-            val result = repository.upsert(ad)
+            val result = withContext(Dispatchers.IO) { repository.upsert(ad) }
             if (result == InsertResult.NEW) {
-                call.respond(HttpStatusCode.Created, mapOf("status" to "inserted"))
+                call.respond(HttpStatusCode.Created, StatusResponse("inserted"))
             } else {
-                call.respond(HttpStatusCode.OK, mapOf("status" to "already_exists"))
+                call.respond(HttpStatusCode.OK, StatusResponse("already_exists"))
             }
         }
 
         post("/batch") {
             val ads = call.receive<List<ApartmentAd>>()
-            val count = repository.upsertBatch(ads)
-            call.respond(HttpStatusCode.Created, mapOf("status" to "inserted", "count" to count))
+            val count = withContext(Dispatchers.IO) { repository.upsertBatch(ads) }
+            call.respond(HttpStatusCode.Created, BatchResponse("inserted", count))
         }
 
         get {
-            val listings = repository.findAll()
+            val listings = withContext(Dispatchers.IO) { repository.findAll() }
             call.respond(listings)
         }
     }
