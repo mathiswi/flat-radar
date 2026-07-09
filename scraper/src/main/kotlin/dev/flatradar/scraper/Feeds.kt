@@ -11,27 +11,19 @@ import java.io.File
  * Tomorrow: the backend API or a DB lookup. The interface is `suspend` from day
  * one so swapping the implementation never changes call-site signatures.
  *
- * Implementations should return an empty list on failure rather than throwing -
- * the scraper must keep running for the feeds it CAN load, and log the failure.
+ * A missing file is a valid "nothing configured yet" state and returns an empty
+ * list. A file that exists but fails to parse is a broken deployment and throws -
+ * the caller ([main]) treats that as fatal.
  */
 interface Feeds {
     suspend fun all(): List<FeedConfig>
 }
 
 /**
- * Loads feeds from a JSON array file on disk.
- *
- * Path resolution, in order:
- *   1. The [path] constructor argument, when non-null (used by tests to point
- *      at an explicit file).
- *   2. The first `feeds.json` found by walking up from the cwd (same lookup as
- *      `.env`) - covers `./gradlew :scraper:run` running from the subproject
- *      while the user's `feeds.json` lives at the repo root.
- *   3. Empty list if neither resolves.
- *
- * The file reading is delegated to the injected [read] suspend lambda so tests
- * can supply canned JSON without touching the filesystem. The default reads the
- * resolved path straight from disk.
+ * Loads feeds from a JSON array file on disk. Resolves [path] if given
+ * (tests point this at an explicit file), otherwise the first `feeds.json`
+ * found walking up from the cwd - covers `./gradlew :scraper:run` setting cwd
+ * to the subproject while the user's `feeds.json` lives at the repo root.
  *
  * JSON schema (see `feeds.json.example`):
  *   [{ "id": "...", "displayName": "...", "source": "kleinanzeigen",
@@ -41,23 +33,19 @@ interface Feeds {
 class JsonFileFeeds(
     private val path: String? = null,
     private val read: suspend (String) -> String = ::defaultReadFile,
+    private val locate: () -> String? = { findUpward("feeds.json") },
 ) : Feeds {
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     override suspend fun all(): List<FeedConfig> {
-        return try {
-            val resolved = path ?: findUpward("feeds.json")
-            if (resolved == null) {
-                System.err.println("[JsonFileFeeds] no feeds.json found; returning empty list")
-                return emptyList()
-            }
-            val text = read(resolved)
-            json.decodeFromString(ListSerializer(FeedConfig.serializer()), text)
-        } catch (e: Exception) {
-            System.err.println("[JsonFileFeeds] could not load feeds: ${e.message}")
-            emptyList()
+        val resolved = path ?: locate()
+        if (resolved == null) {
+            System.err.println("[JsonFileFeeds] no feeds.json found; returning empty list")
+            return emptyList()
         }
+        val text = read(resolved)
+        return json.decodeFromString(ListSerializer(FeedConfig.serializer()), text)
     }
 
     private companion object {

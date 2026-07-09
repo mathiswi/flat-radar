@@ -3,6 +3,7 @@ package dev.flatradar.scraper
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -31,8 +32,18 @@ class JsonFileFeedsTest {
     }
 
     @Test
-    fun malformed_json_returns_empty_list_loudly() = runTest {
+    fun malformed_json_throws_instead_of_silently_returning_empty() = runTest {
+        // A feeds.json that exists but fails to parse is a broken deployment, not
+        // "nothing configured" - main() treats this as fatal (non-zero exit).
         val feeds = JsonFileFeeds(path = "memory:bad", read = { "not json at all" })
+        assertFailsWith<Exception> { feeds.all() }
+    }
+
+    @Test
+    fun missing_file_returns_empty_list_without_throwing() = runTest {
+        // No feeds.json anywhere in the directory walk is a valid "nothing
+        // configured yet" state, not a broken deployment - unlike malformed JSON.
+        val feeds = JsonFileFeeds(locate = { null }, read = { error("should not be called") })
         assertTrue(feeds.all().isEmpty())
     }
 

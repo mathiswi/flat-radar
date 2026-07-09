@@ -1,5 +1,6 @@
 package dev.flatradar.scraper
 
+import io.ktor.client.HttpClient
 import org.jsoup.Jsoup
 
 /**
@@ -17,11 +18,11 @@ import org.jsoup.Jsoup
  */
 object Diagnose {
 
-    suspend fun run(url: String) {
+    suspend fun run(client: HttpClient, url: String) {
         println("[diagnose] $url")
 
         val html = try {
-            fetch(url)
+            fetch(client, url)
         } catch (e: Exception) {
             println("  fetch failed: ${e.message}")
             return

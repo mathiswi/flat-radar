@@ -3,30 +3,20 @@ package dev.flatradar.scraper
 import dev.flatradar.shared.ApartmentAd
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.java.Java
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
-@Serializable
-data class IngestResponse(val status: String, val count: Int? = null)
 
 class BackendClient(
-    baseUrl: String = System.getenv("BACKEND_URL") ?: "http://localhost:8080",
+    private val client: HttpClient,
+    baseUrl: String = Env.get("BACKEND_URL") ?: "http://localhost:8080",
 ) {
     private val apiUrl = baseUrl.trimEnd('/')
-    private val client = HttpClient(Java) {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
-        }
-    }
 
     suspend fun preFilter(ids: List<String>): Set<String> {
         if (ids.isEmpty()) return emptySet()
@@ -38,23 +28,28 @@ class BackendClient(
         return response.body<List<String>>().toSet()
     }
 
-    suspend fun ingestBatch(ads: List<ApartmentAd>): IngestResponse {
-        if (ads.isEmpty()) return IngestResponse(status = "no-op", count = 0)
-        val response = client.post("$apiUrl/api/v1/listings/batch") {
+    /**
+     * Ingests a single ad. Returns `true` when the backend reports it as newly
+     * inserted (`201 Created`), `false` when it already existed (`200 OK`).
+     * Any other status is treated as a hard failure, not "already exists".
+     */
+    suspend fun ingest(ad: ApartmentAd): Boolean {
+        val response = client.post("$apiUrl/api/v1/listings") {
             contentType(ContentType.Application.Json)
-            setBody(ads)
+            setBody(ad)
         }
-        response.ensureSuccess()
-        return response.body()
+        return when (response.status) {
+            HttpStatusCode.Created -> true
+            HttpStatusCode.OK -> false
+            else -> throw BackendException(
+                "unexpected response ingesting ${ad.id}: ${response.status.value} ${response.bodyAsText()}"
+            )
+        }
     }
 
-    fun close() {
-        client.close()
-    }
-
-    private fun HttpResponse.ensureSuccess() {
+    private suspend fun HttpResponse.ensureSuccess() {
         if (!status.isSuccess()) {
-            throw BackendException("backend returned ${status.value}")
+            throw BackendException("backend returned ${status.value}: ${bodyAsText()}")
         }
     }
 }
