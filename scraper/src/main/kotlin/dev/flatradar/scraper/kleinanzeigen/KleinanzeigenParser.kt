@@ -15,8 +15,8 @@ import dev.flatradar.shared.ApartmentAd
  */
 object KleinanzeigenParser : SourceParser {
 
-    override fun parseSearch(html: String, district: String): List<AdRef> =
-        SearchPageParser.parse(html, district)
+    override fun parseSearch(html: String): List<AdRef> =
+        SearchPageParser.parse(html)
             .filterNot { ref ->
                 SwapDetector.isSwapByTitle(ref.title) || SwapDetector.isSwapBySlug(ref.url)
             }

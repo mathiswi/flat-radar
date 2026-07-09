@@ -1,32 +1,32 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     application
 }
 
 dependencies {
     implementation(project(":shared"))
 
-    implementation("io.ktor:ktor-server-core:3.1.3")
-    implementation("io.ktor:ktor-server-netty:3.1.3")
-    implementation("io.ktor:ktor-server-content-negotiation:3.1.3")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.3")
-    implementation("io.ktor:ktor-server-status-pages:3.1.3")
-    implementation("io.ktor:ktor-server-call-logging:3.1.3")
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.server.call.logging)
 
-    implementation("org.jetbrains.exposed:exposed-core:0.57.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.57.0")
-    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:0.57.0")
-    implementation("org.postgresql:postgresql:42.7.4")
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.postgresql)
 
-    implementation("org.liquibase:liquibase-core:4.29.2")
-    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation(libs.liquibase.core)
+    implementation(libs.hikaricp)
 
-    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation(libs.logback.classic)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("io.ktor:ktor-server-test-host:3.1.3")
-    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.h2)
 }
 
 kotlin {

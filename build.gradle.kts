@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "2.1.20" apply false
-    kotlin("plugin.serialization") version "2.1.20" apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 allprojects {
-    group = "com.flatradar"
+    group = "dev.flatradar"
     version = "0.1.0"
 
     repositories {

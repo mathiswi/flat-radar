@@ -15,7 +15,7 @@ import dev.flatradar.shared.ApartmentAd
  * I/O. `parseDetail` is suspend because it may invoke the [RentFallback] LLM call.
  */
 interface SourceParser {
-    fun parseSearch(html: String, district: String): List<AdRef>
+    fun parseSearch(html: String): List<AdRef>
 
     suspend fun parseDetail(
         html: String,

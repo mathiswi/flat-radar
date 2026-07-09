@@ -13,11 +13,10 @@ class SearchPageParserTest {
         // source-parser layer's job (KleinanzeigenParser.parseSearch) so the parser
         // itself stays a pure jsoup transformation with a single responsibility.
         val html = loadResource("/mock/kleinanzeigen/search_barmbek.html")
-        val refs = SearchPageParser.parse(html, "Barmbek")
+        val refs = SearchPageParser.parse(html)
 
         assertTrue(refs.isNotEmpty(), "expected at least one ref from real-search snapshot")
         assertTrue(refs.all { it.url.startsWith("https://www.kleinanzeigen.de") })
-        assertTrue(refs.all { it.district == "Barmbek" })
         assertTrue(refs.all { it.adId.isNotBlank() })
     }
 
@@ -26,7 +25,7 @@ class SearchPageParserTest {
         // The source-parser layer keeps the "no detail fetch wasted on swaps" optimisation
         // that previously lived inline in SearchPageParser.parse.
         val html = loadResource("/mock/kleinanzeigen/search_barmbek.html")
-        val refs = KleinanzeigenParser.parseSearch(html, "Barmbek")
+        val refs = KleinanzeigenParser.parseSearch(html)
 
         assertTrue(refs.isNotEmpty())
         assertTrue(refs.none { it.title.trim().uppercase().startsWith("TAUSCHWOHNUNG") })
@@ -41,7 +40,7 @@ class SearchPageParserTest {
                 <h2 class="text-module-begin"><a class="ellipsis" href="#">Nice flat</a></h2>
             </article>
         """.trimIndent()
-        val refs = KleinanzeigenParser.parseSearch(html, "X")
+        val refs = KleinanzeigenParser.parseSearch(html)
         assertEquals(0, refs.size)
     }
 }

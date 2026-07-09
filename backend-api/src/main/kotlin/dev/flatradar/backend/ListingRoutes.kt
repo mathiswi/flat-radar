@@ -29,12 +29,6 @@ fun Route.listingRoutes(repository: ListingRepository) {
             }
         }
 
-        post("/batch") {
-            val ads = call.receive<List<ApartmentAd>>()
-            val count = withContext(Dispatchers.IO) { repository.upsertBatch(ads) }
-            call.respond(HttpStatusCode.Created, BatchResponse("inserted", count))
-        }
-
         get {
             val listings = withContext(Dispatchers.IO) { repository.findAll() }
             call.respond(listings)

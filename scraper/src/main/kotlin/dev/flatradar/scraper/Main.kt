@@ -95,7 +95,7 @@ private suspend fun processFeed(
 
     return try {
         val html = fetch(httpClient, feed.url)
-        val refs = parser.parseSearch(html, feed.district)
+        val refs = parser.parseSearch(html)
         println("[${feed.id}] ${refs.size} ad(s) on search page")
 
         val existingIds = backendClient.preFilter(refs.map { it.adId })

@@ -18,7 +18,7 @@ object SearchPageParser {
      *     - href (relative):   attribute "data-href"  (e.g. "/s-anzeige/.../3450160395-203-9449")
      *     - title:             h2.text-module-begin a.ellipsis .text()
      */
-    fun parse(html: String, district: String): List<AdRef> {
+    fun parse(html: String): List<AdRef> {
         val doc = Jsoup.parse(html)
         val refs = mutableListOf<AdRef>()
 
@@ -28,7 +28,7 @@ object SearchPageParser {
             val title = card.selectFirst(Constants.CARD_TITLE)?.text()?.trim() ?: continue
 
             val fullUrl = if (href.startsWith("http")) href else Constants.BASE_URL + href
-            refs.add(AdRef(adId = adId, url = fullUrl, title = title, district = district))
+            refs.add(AdRef(adId = adId, url = fullUrl, title = title))
         }
 
         return refs

@@ -116,24 +116,6 @@ class ListingRoutesTest {
         assertTrue(listings.any { it.id == "b" })
     }
 
-    @Test
-    fun batch_endpoint_inserts_all_ads() = testApplication {
-        application { module(freshDataSource(), TEST_CHANGELOG) }
-
-        val response = client.post("/api/v1/listings/batch") {
-            contentType(ContentType.Application.Json)
-            setBody(json.encodeToString(ListSerializer(ApartmentAd.serializer()), listOf(sampleAd("batch-1"), sampleAd("batch-2"))))
-        }
-        assertEquals(HttpStatusCode.Created, response.status)
-        val body = json.decodeFromString<BatchResponse>(response.bodyAsText())
-        assertEquals("inserted", body.status)
-        assertEquals(2, body.count)
-
-        val allText = client.get("/api/v1/listings").bodyAsText()
-        val all = json.decodeFromString(ListSerializer(ApartmentAd.serializer()), allText)
-        assertEquals(2, all.size)
-    }
-
     private companion object {
         val dbCounter = AtomicInteger(0)
         const val TEST_CHANGELOG = "db/changelog/test-changelog.yaml"

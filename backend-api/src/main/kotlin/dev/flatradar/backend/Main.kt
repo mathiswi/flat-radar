@@ -13,12 +13,9 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
-import io.ktor.util.AttributeKey
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import javax.sql.DataSource
-
-val DataSourceKey = AttributeKey<DataSource>("DataSource")
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
@@ -32,8 +29,6 @@ fun Application.module(
     changelogPath: String = "db/changelog/db.changelog-master.yaml",
 ) {
     val json = Json { ignoreUnknownKeys = true; isLenient = true }
-
-    attributes.put(DataSourceKey, dataSource)
 
     val repository = ListingRepository(dataSource)
 

@@ -9,5 +9,4 @@ data class AdRef(
     val adId: String,
     val url: String,
     val title: String,
-    val district: String,
 )
