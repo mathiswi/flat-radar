@@ -47,7 +47,7 @@ flowchart TD
     A[Load feeds.json] --> B[For each enabled feed]
     B --> C[Fetch search page HTML]
     C --> D[Parse search page]
-    D --> E[Extract AdRefs<br/>id, url, title, district]
+    D --> E[Extract AdRefs<br/>id, url, title]
     E --> F[POST /api/v1/listings/ids]
     F --> G{Backend returns<br/>existing IDs}
     G --> H[Filter to new AdRefs only]
@@ -66,7 +66,7 @@ flowchart TD
 ### Phase 1: Pre-Filter
 
 Before fetching detail pages (which are expensive), the scraper:
-1. Parses the search page to extract lightweight `AdRef` objects (just ID, URL, title, district)
+1. Parses the search page to extract lightweight `AdRef` objects (just ID, URL, title)
 2. Sends all ad IDs to `POST /api/v1/listings/ids`
 3. Receives back the subset of IDs that already exist in the database
 4. Filters out existing ads, keeping only new ones
@@ -161,8 +161,8 @@ CREATE TABLE listings (
     url TEXT NOT NULL,
     source TEXT NOT NULL,
     district TEXT,
-    first_seen BIGINT NOT NULL,  -- Unix timestamp (ms) when first inserted
-    last_seen BIGINT NOT NULL    -- Unix timestamp (ms) when last updated
+    first_seen TIMESTAMPTZ NOT NULL DEFAULT now(),  -- when first inserted
+    last_seen TIMESTAMPTZ NOT NULL DEFAULT now()    -- when last updated
 );
 ```
 
@@ -245,6 +245,18 @@ Retrieve all stored listings.
 ]
 ```
 
+### GET /api/v1/health
+
+Liveness check, no DB access. Always `200 {"status": "up"}`. Used by the
+Docker/Compose healthcheck to confirm the process is alive.
+
+### GET /api/v1/ready
+
+Readiness check: pings the Postgres connection. `200 {"status": "ready"}` when
+the DB is reachable, `503 {"status": "not_ready", "error": "..."}` otherwise.
+Used by Compose's `depends_on` so the scraper doesn't start until the backend
+can actually serve traffic.
+
 ## Deployment
 
 The system runs as Docker containers orchestrated by `docker-compose.yml`:
@@ -273,8 +285,9 @@ graph LR
 
 ## Error Handling
 
-- **Scraper failures**: Individual feed failures don't stop the entire run. Errors are logged and the scraper continues with other feeds.
-- **Backend failures**: If the backend is unreachable, the scraper logs errors but continues parsing. Listings are not retried automatically.
+- **Per-ad/per-feed failures**: A single detail page that fails to fetch or parse is logged and skipped; it doesn't affect other ads in the same feed or other feeds. Same for a single failed ingest POST.
+- **Backend unreachable**: The pre-filter POST (`/listings/ids`) is not wrapped per-ad - if it fails, the whole feed aborts for that run (no pre-filter means no cheap dedup, so there's nothing safe to fall back to). Other feeds in the same run are unaffected. The next cron tick retries naturally.
+- **Feeds.json missing or empty**: A missing file is treated as "nothing configured yet" (empty list, exit 0). A file that exists but fails to parse, or resolves to zero enabled feeds, is treated as a broken deployment: the scraper logs the failure and exits with a non-zero code so the operator notices.
 - **Database failures**: The backend runs Liquibase migrations at startup. If migrations fail, the backend won't start.
 
 ## Future Enhancements
@@ -282,4 +295,5 @@ graph LR
 - **Discord notifications**: When new listings are inserted, trigger Discord webhook alerts
 - **Filtering**: Add price/size/room filters to reduce noise
 - **Multiple sources**: Add parsers for ImmoScout24, WG-Gesucht, etc.
-- **Scheduled runs**: Add cron-based scheduling instead of one-shot execution
+
+Scheduled runs already work today via external cron/systemd/k8s CronJob invoking the one-shot scraper - this is a deliberate design choice, not a gap.

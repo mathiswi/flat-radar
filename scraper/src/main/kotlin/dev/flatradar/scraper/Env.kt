@@ -4,34 +4,22 @@ import io.github.cdimascio.dotenv.Dotenv
 import java.io.File
 
 /**
- * Single entry point for environment configuration.
+ * Single entry point for environment configuration. [get] checks the real
+ * process environment first (shell `export`, docker -e, k8s env), then a
+ * `.env` file found by walking up from the cwd, then returns `null`.
  *
- * Resolution order for [get]:
- *   1. Real process environment (shell `export`, docker -e, k8s env, ...) - dotenv-java
- *      checks this on every lookup, regardless of any `.env` file.
- *   2. The first `.env` file found by walking from the current working directory up
- *      a few parent directories. Covers `./gradlew :scraper:run` which sets cwd to
- *      the subproject directory while the user's `.env` lives at the repo root.
- *   3. `null` if neither has the key.
- *
- * Why a helper instead of calling `System.getenv(...)` directly:
- *   - dotenv-java's loaded values live in its own map, not in the JVM's `System.getenv()`.
- *     Calling `System.getenv("GEMINI_API_KEY")` would NOT see a value from `.env`.
- *   - Centralising the lookup means every config read goes through the same path.
+ * Use this instead of `System.getenv(...)` directly: dotenv-java's loaded
+ * `.env` values live in its own map, not in `System.getenv()`, so a direct
+ * call would silently miss anything set only via `.env`.
  */
 object Env {
 
     private val dotenv: Dotenv by lazy { load() }
 
-    /**
-     * Returns the value for [key], or `null` if not set in `.env` or the real environment.
-     * Use `.takeIf { it.isNotBlank() }` if you treat whitespace as "not set".
-     */
+    /** Returns the value for [key], or `null` if not set in `.env` or the real environment. */
     fun get(key: String): String? = dotenv[key]
 
     private fun load(): Dotenv {
-        // Walk up looking for a .env file. If found, point dotenv at its directory.
-        // If not found, dotenv still picks up real env vars (k8s, docker, shell export).
         val envDir = findUpward(".env")?.let { File(it).parentFile }
             ?: return Dotenv.configure()
                 .ignoreIfMissing()

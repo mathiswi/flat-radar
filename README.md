@@ -6,12 +6,14 @@ Lightweight real-estate listing monitor. Scrapes Kleinanzeigen, extracts structu
 
 - `shared/` - domain DTOs (`ApartmentAd`), `kotlinx.serialization`
 - `scraper/` - HTML parsing + LLM rent-extraction fallback
+- `backend-api/` - Ktor server: dedup + persistence (Exposed + Postgres)
 
-> `backend-api`, `discord-service`, `frontend` per the spec - not yet implemented.
+> `discord-service` and `frontend` per the spec - still planned, not yet implemented.
 
 ## Run
 
 ```sh
+./gradlew build                # build + test everything
 ./gradlew :scraper:test        # unit tests
 ./gradlew :scraper:build       # full build
 ./gradlew :scraper:run         # one-shot: load feeds, parse, exit
@@ -23,9 +25,22 @@ LLM rent-extraction is optional. Set in `.env`:
 
 ```
 GEMINI_API_KEY=...             # leave empty to disable
+BACKEND_URL=http://localhost:8080   # where the scraper POSTs ingested ads
 ```
 
+`.env` is read via dotenv-java (see `scraper/src/main/kotlin/dev/flatradar/scraper/Env.kt`), so these values work for local `./gradlew :scraper:run` without exporting real shell/OS env vars.
+
 ## Deploy
+
+### Docker Compose (recommended for local end-to-end runs)
+
+Brings up Postgres, the backend, and one scraper run in the right order:
+
+```sh
+docker compose up --build
+```
+
+### Scraper only
 
 Build the Docker image (multi-stage, JRE-only runtime):
 

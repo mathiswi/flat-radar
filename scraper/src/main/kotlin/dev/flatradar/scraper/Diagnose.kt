@@ -5,16 +5,11 @@ import org.jsoup.Jsoup
 
 /**
  * Diagnostic subcommand: fetch a single URL through the same code path as a
- * normal scrape run, then report what kind of page came back. Use to triage
- * "skip (null)" lines in the scraper log - was it a swap ad, a bot-detection
- * challenge, or a real detail page the parser missed?
+ * normal scrape run, then classify the response (detail page / search page /
+ * bot challenge / unknown). Use to triage "skip (null)" lines in the scraper
+ * log. Does not touch the backend.
  *
- * Usage:
- *   ./gradlew :scraper:run --args="diagnose https://www.kleinanzeigen.de/s-anzeige/.../1234-203-1"
- *
- * Does NOT touch the backend. Reads `mock://` and `https://` URLs via [fetch],
- * so you can also point it at any of the local fixtures to compare a known-good
- * parse with whatever the live site is serving today.
+ * Usage: `./gradlew :scraper:run --args="diagnose <url>"`
  */
 object Diagnose {
 

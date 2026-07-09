@@ -1,71 +1,112 @@
-# System Specification: Housing Hunter Monorepo
+# System Specification: flat-radar
 
-A lightweight, automated real estate monitoring system designed to scrape property listings, process data through a central backend, and distribute instant alerts via communication channels.
+A lightweight, automated real-estate monitoring system. Scrapes property
+listings (currently Kleinanzeigen), stores them deduplicated in Postgres via a
+central backend, and will distribute instant alerts via Discord.
 
 ---
 
 ## 1. System Architecture & Components
 
-The system is organized as a Gradle multi-project monorepo containing four core modules and a shared data layer.
+Gradle multi-project monorepo (Kotlin/JVM, toolchain 21):
 
 ```
-housing-hunter-monorepo/
-├── shared/             # Common Data Transfer Objects (DTOs) & Serialization
-├── scraper/            # Scheduled polling service (HTTP + HTML Parser)
-├── backend-api/        # Central storage, business logic, and REST endpoints
-├── discord-service/    # Notification worker for downstream alerts
-└── frontend/           # (Optional) Minimalist dashboard for monitoring
+flat-radar/
+├── shared/             # Domain DTOs (`ApartmentAd`), kotlinx.serialization
+├── scraper/            # One-shot polling job: fetch → parse → pre-filter → ingest
+├── backend-api/        # Ktor server: dedup, persistence (Exposed + Postgres)
+├── api-tests/          # Bruno/OpenCollection HTTP request collection
+├── discord-service/    # PLANNED — notification worker
+└── frontend/           # PLANNED — minimal dashboard
 ```
 
-### Component Breakdown
+### A. `shared`
+* Single source of truth for the wire format between scraper and backend.
+* Key model: `ApartmentAd` — id, title, size, rooms, bedrooms, bathrooms,
+  floor, apartmentType, availableFrom, deposit, baseRent, sideCosts,
+  heatingCosts, totalRent, location, url, source, district, timestamp (ms).
 
-#### A. `shared` (Kotlin Multiplatform / Common JVM)
-* **Purpose:** Single source of truth for domain models to eliminate duplication across services.
-* **Tech:** `kotlinx.serialization`
-* **Key Model:** `ApartmentAd` containing ID, title, price, size, room count, location, URL, and timestamp.
+### B. `scraper`
+* **One-shot execution.** No internal loop; scheduling is external (host cron /
+  systemd timer / k8s CronJob). Runs, ingests, exits — non-zero exit code when
+  feeds can't be loaded or none are enabled, zero otherwise (individual ad/feed
+  failures are logged and skipped, never fatal to the run).
+* **Source abstraction:** each platform implements `SourceParser`
+  (`parseSearch` → `List<AdRef>`, `parseDetail` → `ApartmentAd?`) and registers
+  in `SourceParsers.all`. Feeds are configured in `feeds.json` (gitignored;
+  see `feeds.json.example`) — adding a district is config-only.
+* **Two-phase scrape** to minimize traffic and bot-detection surface:
+  1. Parse the search page into lightweight `AdRef`s, filter swap ads
+     (`SwapDetector`, title/slug heuristics), then POST all ids to
+     `POST /api/v1/listings/ids`; the backend returns those already stored.
+  2. Fetch detail pages only for new ids (rate-limited with a shared semaphore
+     and randomized delay to avoid a machine-like access pattern), parse
+     fully, ingest one by one.
+* **Rent extraction ladder** (per detail page): structured attribute rows
+  (Kaltmiete/Warmmiete/Nebenkosten/Heizkosten) → LLM fallback (Gemini, JSON
+  mode; only when no structured rent info at all and a description exists) →
+  headline price fills `totalRent` as last resort. LLM is optional: enabled
+  iff `GEMINI_API_KEY` is set.
+* **Diagnostics:** `scrape diagnose <url>` fetches through the production code
+  path and classifies the response (detail page / search page / bot challenge).
+* Tech: Ktor Client (Java engine, browser-like headers), jsoup, dotenv-java.
 
-#### B. `scraper` (Kotlin JVM / Coroutines)
-* **Purpose:** Periodically queries real estate platforms without browser overhead.
-* **Tech:** `Ktor Client` (with realistic browser headers/User-Agent rotation), `jsoup` for CSS-selector extraction.
-* **Execution:** Non-blocking coroutine loop using `delay()` instead of standard blocking cron-jobs.
+### C. `backend-api`
+* Ktor (Netty) + Exposed + HikariCP + Postgres; Liquibase migrations run at
+  startup (`db/changelog/db.changelog-master.yaml`).
+* Endpoints (all under `/api/v1`):
+  * `POST /listings/ids` — pre-filter: body `[id...]`, returns subset that exist.
+  * `POST /listings` — ingest one ad; `201 {"status":"inserted"}` or
+    `200 {"status":"already_exists"}` (refreshes `last_seen`).
+  * `GET  /listings` — all stored listings.
+  * `GET  /health` — liveness (no DB). `GET /ready` — readiness (DB ping),
+    used by compose `depends_on`.
+* Schema: `listings` table mirrors the DTO; `first_seen` / `last_seen` are
+  `TIMESTAMPTZ` (DTO `timestamp` maps to `first_seen` on insert).
 
-#### C. `backend-api` (Kotlin Ktor or Spring Boot)
-* **Purpose:** Central coordinator. Receives raw scraped data, filters duplicates, stores records, and triggers events.
-* **Tech:** `Ktor Server`, `Exposed` (SQL library), `SQLite` or `PostgreSQL`.
-* **Endpoints:**
-  * `POST /api/v1/listings` – Ingests raw listings from the scraper.
-  * `GET /api/v1/listings` – Fetches tracked listings (filtered by status/price).
-
-#### D. `discord-service` (Kotlin JVM)
-* **Purpose:** Consumes events from the backend and posts rich embeds to a specified channel.
-* **Tech:** `Ktor Client` hitting Discord Webhooks (or a lightweight library like `Kord`).
+### D. `discord-service` — PLANNED
+* Consumes new-listing events from the backend, posts rich embeds via Discord
+  webhook. Requires a trigger mechanism (direct HTTP call or outbox/poll).
 
 ---
 
-## 2. Core Data Flow
+## 2. Data Flow
 
-1. **Poll:** The `scraper` triggers every 10–15 minutes, fetching raw HTML from the target search URL.
-2. **Extract & Map:** `jsoup` parses the DOM. Extracted fields are mapped directly into `shared.ApartmentAd` objects.
-3. **Ingest:** The `scraper` sends a `POST` payload to `backend-api`.
-4. **Filter:** The backend checks the incoming IDs against the database. 
-5. **Persist & Alert:** If an ID is new, it is saved. The backend then dispatches an internal event or direct HTTP call to the `discord-service`.
-6. **Notify:** The `discord-service` formats a rich embed with clickable URLs and sends it via the Discord webhook.
+1. Cron starts the scraper container (`docker run --rm`, every 10–15 min).
+2. Scraper loads `feeds.json`, processes enabled feeds concurrently.
+3. Per feed: fetch search page → parse `AdRef`s → drop swap ads → pre-filter
+   ids against backend → fetch/parse detail pages of new ads only (rate
+   limited) → POST each `ApartmentAd` to the backend.
+4. Backend upserts; duplicates only refresh `last_seen`.
+5. (Planned) New inserts trigger a Discord notification.
+
+Failure policy: an individual ad or feed failure is logged and skipped, never
+fatal to the run. A run with no loadable feeds exits non-zero so the operator
+notices. If the backend is unreachable the feed aborts (no pre-filter means no
+cheap dedup); the next cron tick retries naturally.
 
 ---
 
-## 3. Development & Deployment Plan
+## 3. Deployment
 
-### Step 1: Initialize Monorepo & Shared Module
-* Set up a root `settings.gradle.kts` declaring all sub-modules.
-* Implement the core data classes in `:shared`.
+* Each service ships a multi-stage Dockerfile (gradle build → JRE-only image).
+* `docker-compose.yml` orchestrates `postgres` (healthcheck) → `backend-api`
+  (waits for postgres, `/health` check) → `scraper` (waits for backend,
+  `restart: "no"` — it is a job, not a service).
+* Config via environment:
+  * backend: `JDBC_URL`, `JDBC_USER`, `JDBC_PASSWORD`, `PORT` (default 8080)
+  * scraper: `BACKEND_URL`, `GEMINI_API_KEY` (optional), `feeds.json` mounted
+    at `/app/feeds.json`; `.env` at repo root supported for local runs.
 
-### Step 2: Build the Core Pipeline (Scraper to Backend)
-* Implement the HTML parsing logic using mock HTML text first, then wire up `Ktor Client`.
-* Create a minimal `backend-api` that accepts payloads and prints them to console to verify the network connection.
+---
 
-### Step 3: Persistence & Filtering
-* Hook up `Exposed` with an embedded SQLite database file.
-* Implement the deduplication step (`insert if not exists`).
+## 4. Roadmap
 
-### Step 4: Notification Loop
-* Connect the Discord webhook flow. Turn on filtering parameters (e.g., maximum price thresholds, keyword exclusions) to avoid spamming the channel.
+1. **Discord notifications** — webhook embeds for new inserts, with price/size
+   filter thresholds to avoid spam.
+2. **Query filters** on `GET /listings` (price, rooms, district, since).
+3. **More sources** — ImmoScout24, WG-Gesucht (new `SourceParser` + registry
+   entry + feeds.json entries).
+4. **Operational hardening** — run-summary metrics, alerting on repeated
+   bot-blocks, retry/backoff for transient backend failures.
+5. **Frontend** — minimal dashboard over `GET /listings` (optional).
