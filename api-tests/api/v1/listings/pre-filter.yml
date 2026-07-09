@@ -1,0 +1,18 @@
+info:
+  name: pre-filter
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/listings/ids"
+  auth: none
+  body:
+    type: json
+    data: |-
+      [
+        "3450160395",
+        "3425649112",
+        "3443188717",
+        "nonexistent-999"
+      ]

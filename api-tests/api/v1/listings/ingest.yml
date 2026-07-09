@@ -1,0 +1,33 @@
+info:
+  name: ingest
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/listings"
+  auth: none
+  body:
+    type: json
+    data: |-
+      {
+        "id": "3452480994",
+        "title": "2-Zi-Wohnung mit Balkon in Niendorf nahe U-Bahn - ab August",
+        "size": 57.0,
+        "rooms": 2.0,
+        "bedrooms": null,
+        "bathrooms": null,
+        "floor": "1",
+        "apartmentType": null,
+        "availableFrom": "2026-08-01",
+        "deposit": 1500,
+        "baseRent": null,
+        "sideCosts": 110,
+        "heatingCosts": 110,
+        "totalRent": 1087,
+        "location": "22880 Niendorf",
+        "url": "https://www.kleinanzeigen.de/s-anzeige/2-zi-wohnung-mit-balkon-in-niendorf-nahe-u-bahn-ab-august/3452480994-203-16475",
+        "source": "kleinanzeigen",
+        "district": "Niendorf",
+        "timestamp": 1750000000000
+      }

@@ -2,5 +2,6 @@ rootProject.name = "flat-radar"
 
 include(
     "shared",
-    "scraper"
+    "scraper",
+    "backend-api",
 )

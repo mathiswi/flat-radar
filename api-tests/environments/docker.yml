@@ -1,0 +1,4 @@
+name: docker
+variables:
+  - name: baseUrl
+    value: http://backend-api:8080

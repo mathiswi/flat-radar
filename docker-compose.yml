@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flatradar
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d flatradar"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend-api:
+    build:
+      context: .
+      dockerfile: backend-api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/flatradar
+      JDBC_USER: app
+      JDBC_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: http://backend-api:8080
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - ./feeds.json:/app/feeds.json:ro
+    restart: "no"
+
+volumes:
+  postgres-data:

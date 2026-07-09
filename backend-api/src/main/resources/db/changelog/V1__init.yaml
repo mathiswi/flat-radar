@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: V1__init
+      author: mathiswi
+      changes:
+        - createTable:
+            tableName: listings
+            columns:
+              - column:
+                  name: id
+                  type: TEXT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: DOUBLE PRECISION
+              - column:
+                  name: rooms
+                  type: DOUBLE PRECISION
+              - column:
+                  name: bedrooms
+                  type: INTEGER
+              - column:
+                  name: bathrooms
+                  type: INTEGER
+              - column:
+                  name: floor
+                  type: TEXT
+              - column:
+                  name: apartment_type
+                  type: TEXT
+              - column:
+                  name: available_from
+                  type: DATE
+              - column:
+                  name: deposit
+                  type: INTEGER
+              - column:
+                  name: base_rent
+                  type: INTEGER
+              - column:
+                  name: side_costs
+                  type: INTEGER
+              - column:
+                  name: heating_costs
+                  type: INTEGER
+              - column:
+                  name: total_rent
+                  type: INTEGER
+              - column:
+                  name: location
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: district
+                  type: TEXT
+              - column:
+                  name: first_seen
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_seen
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false

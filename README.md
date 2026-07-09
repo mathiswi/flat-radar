@@ -14,13 +14,38 @@ Lightweight real-estate listing monitor. Scrapes Kleinanzeigen, extracts structu
 ```sh
 ./gradlew :scraper:test        # unit tests
 ./gradlew :scraper:build       # full build
-./gradlew :scraper:run         # once the Fetcher TODO is filled in
+./gradlew :scraper:run         # one-shot: load feeds, parse, exit
 ```
+
+The scraper is one-shot - no internal loop, no `delay()`. Scheduling is external (host cron, systemd timer, k8s CronJob). One failed run doesn't block the next; a fresh cron tick re-fetches.
 
 LLM rent-extraction is optional. Set in `.env`:
 
 ```
 GEMINI_API_KEY=...             # leave empty to disable
+```
+
+## Deploy
+
+Build the Docker image (multi-stage, JRE-only runtime):
+
+```sh
+docker build -t flat-radar-scraper .
+```
+
+Run one-shot, mounting config from the host:
+
+```sh
+docker run --rm \
+  --env-file /opt/flat-radar/.env \
+  -v /opt/flat-radar/feeds.json:/app/feeds.json:ro \
+  flat-radar-scraper
+```
+
+Schedule with host cron (every 15 min):
+
+```cron
+*/15 * * * * root docker run --rm --env-file /opt/flat-radar/.env -v /opt/flat-radar/feeds.json:/app/feeds.json:ro flat-radar-scraper >> /var/log/flat-radar.log 2>&1
 ```
 
 ## Feeds
