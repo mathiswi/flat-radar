@@ -23,5 +23,8 @@ data class ApartmentAd(
     val url: String,
     val source: String,
     val district: String? = null,
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val distanceMeters: Int? = null,
     val timestamp: Long
 )
