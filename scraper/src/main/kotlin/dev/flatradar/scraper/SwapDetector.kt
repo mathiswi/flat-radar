@@ -6,11 +6,13 @@ package dev.flatradar.scraper
  *
  * The prefix check is deliberately loose (`startsWith`, case-insensitive) so it
  * matches the title conventions observed on every source scraped so far:
- * Kleinanzeigen ("TAUSCHWOHNUNG - ...") and ImmoScout24 ("Tauschwohnung: ...").
- * Source-specific signals (account name, URL slug, description text) stay in
- * that source's own package - see [dev.flatradar.scraper.kleinanzeigen.SwapDetector].
+ * Kleinanzeigen ("TAUSCHWOHNUNG - ...") and ImmoScout24 ("Tauschwohnung: ...",
+ * "Wohnungstausch: ...").
  */
 object SwapDetector {
-    fun isSwapByTitle(title: String?): Boolean =
-        title != null && title.trim().uppercase().startsWith("TAUSCHWOHNUNG")
+    fun isSwapByTitle(title: String?): Boolean {
+        if (title == null) return false
+        val t = title.trim().uppercase()
+        return t.startsWith("TAUSCHWOHNUNG") || t.startsWith("WOHNUNGSTAUSCH")
+    }
 }

@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: V3__add_notification_outbox
+      author: mathiswi
+      changes:
+        - createTable:
+            tableName: notification_outbox
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: listing_id
+                  type: TEXT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_notification_outbox_listing
+                    references: listings(id)
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: TIMESTAMPTZ
+              - column:
+                  name: attempts
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_error
+                  type: TEXT
+        - createIndex:
+            tableName: notification_outbox
+            indexName: idx_notification_outbox_unsent
+            columns:
+              - column:
+                  name: sent_at
+              - column:
+                  name: created_at

@@ -87,3 +87,70 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+  - changeSet:
+      id: V2__add_geo_coordinates
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V2__add_geo_coordinates.yaml.
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: lat
+                  type: DOUBLE PRECISION
+              - column:
+                  name: lon
+                  type: DOUBLE PRECISION
+              - column:
+                  name: distance_meters
+                  type: INTEGER
+  - changeSet:
+      id: V3__add_notification_outbox
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V3__add_notification_outbox.yaml, except
+        # `listing_id` is VARCHAR(512) instead of TEXT to match the `listings.id`
+        # PK type override above (H2 can't index/FK a CLOB column).
+        - createTable:
+            tableName: notification_outbox
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: listing_id
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_notification_outbox_listing
+                    references: listings(id)
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: TIMESTAMPTZ
+              - column:
+                  name: attempts
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_error
+                  type: TEXT
+        - createIndex:
+            tableName: notification_outbox
+            indexName: idx_notification_outbox_unsent
+            columns:
+              - column:
+                  name: sent_at
+              - column:
+                  name: created_at

@@ -22,8 +22,8 @@ package dev.flatradar.scraper.kleinanzeigen
 object SwapDetector {
 
     /** Lightweight title check — call from SearchPageParser to skip the detail fetch entirely.
-     * Delegates to the source-agnostic [dev.flatradar.scraper.SwapDetector]; kept here too so
-     * existing call sites/tests in this package don't need to change import. */
+     * Delegates to the source-agnostic [dev.flatradar.scraper.SwapDetector] which handles both
+     * "Tauschwohnung" (Kleinanzeigen) and "Wohnungstausch" (ImmoScout24) prefixes. */
     fun isSwapByTitle(title: String?): Boolean =
         dev.flatradar.scraper.SwapDetector.isSwapByTitle(title)
 

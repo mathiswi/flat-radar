@@ -1,14 +1,14 @@
 # flat-radar
 
-Lightweight real-estate listing monitor. Scrapes Kleinanzeigen, extracts structured data, paves the way for backend storage and Discord alerts.
+Lightweight real-estate listing monitor. Scrapes Kleinanzeigen and ImmoScout24, stores deduplicated listings in Postgres, and delivers instant Discord alerts via a transactional outbox.
 
 ## Modules
 
 - `shared/` - domain DTOs (`ApartmentAd`), `kotlinx.serialization`
-- `scraper/` - HTML parsing + LLM rent-extraction fallback
-- `backend-api/` - Ktor server: dedup + persistence (Exposed + Postgres)
+- `scraper/` - one-shot polling job: fetch -> parse -> pre-filter -> ingest
+- `backend-api/` - Ktor server: dedup, persistence (Exposed + Postgres), transactional outbox, Discord notifier
 
-> `discord-service` and `frontend` per the spec - still planned, not yet implemented.
+> `frontend` per the spec - still planned.
 
 ## Run
 
@@ -24,8 +24,9 @@ The scraper is one-shot - no internal loop, no `delay()`. Scheduling is external
 LLM rent-extraction is optional. Set in `.env`:
 
 ```
-GEMINI_API_KEY=...             # leave empty to disable
+GEMINI_API_KEY=...                  # leave empty to disable
 BACKEND_URL=http://localhost:8080   # where the scraper POSTs ingested ads
+DISCORD_WEBHOOK_URL=...             # leave empty to disable notifications
 ```
 
 `.env` is read via dotenv-java (see `scraper/src/main/kotlin/dev/flatradar/scraper/Env.kt`), so these values work for local `./gradlew :scraper:run` without exporting real shell/OS env vars.
@@ -69,7 +70,8 @@ Feeds live in `feeds.json` at the repo root (gitignored, see `feeds.json.example
 
 ```json
 [
-  { "id": "barmbek", "displayName": "Barmbek", "source": "kleinanzeigen", "url": "https://...", "district": "Barmbek", "enabled": true }
+  { "id": "barmbek", "displayName": "Barmbek", "source": "kleinanzeigen", "url": "https://...", "district": "Barmbek", "enabled": true },
+  { "id": "barmbek-is24", "displayName": "Barmbek-Nord (ImmoScout24)", "source": "immoscout24", "url": "https://...", "district": "Barmbek-Nord", "enabled": true }
 ]
 ```
 
@@ -80,4 +82,10 @@ Feeds live in `feeds.json` at the repo root (gitignored, see `feeds.json.example
 
 Each listing source ships a `SourceParser` registered in `SourceParsers.all: Map<String, SourceParser>`. `JsonFileFeeds` loads `feeds.json`; the runner looks up `SourceParsers.get(feed.source)` and logs + skips unknown sources.
 
-`KleinanzeigenParser` delegates to `SearchPageParser` (pure parse) and `DetailPageParser` (with `RentFallback` LLM hook), applying the Tauschwohnung filter at the source layer so no detail fetch is wasted on swap ads.
+**Two-phase scrape:** parse search page into lightweight `AdRef`s -> filter swap ads (`SwapDetector`) -> pre-filter ids against backend via `POST /api/v1/listings/ids` -> fetch and parse detail pages only for new ads.
+
+**Sources:**
+- `kleinanzeigen` - jsoup over the HTML site, with optional LLM rent-extraction fallback
+- `immoscout24` - ImmoScout24's unauthenticated mobile-app JSON API (avoids the website's bot-detection entirely)
+
+**Notifications:** transactional outbox in the backend - a new listing insert writes a `notification_outbox` row atomically. `OutboxWorker` polls every 5s and delivers via Discord webhook. Disabled when `DISCORD_WEBHOOK_URL` is unset.

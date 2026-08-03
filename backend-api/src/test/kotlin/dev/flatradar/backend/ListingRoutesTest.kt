@@ -56,6 +56,9 @@ class ListingRoutesTest {
         url = "https://example.de/$id",
         source = "kleinanzeigen",
         district = "Niendorf",
+        lat = 53.59425,
+        lon = 10.04675,
+        distanceMeters = 1600,
         timestamp = 1_750_000_000_000L,
     )
 
@@ -114,6 +117,47 @@ class ListingRoutesTest {
         assertEquals(2, listings.size)
         assertTrue(listings.any { it.id == "a" })
         assertTrue(listings.any { it.id == "b" })
+    }
+
+    @Test
+    fun geo_fields_round_trip_through_ingest_and_read() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        client.post("/api/v1/listings") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ApartmentAd.serializer(), sampleAd("geo")))
+        }
+
+        val response = client.get("/api/v1/listings")
+        val listings = json.decodeFromString(ListSerializer(ApartmentAd.serializer()), response.bodyAsText())
+        val stored = listings.first { it.id == "geo" }
+
+        assertEquals(53.59425, stored.lat)
+        assertEquals(10.04675, stored.lon)
+        assertEquals(1600, stored.distanceMeters)
+    }
+
+    @Test
+    fun geo_fields_default_to_null_when_absent() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        client.post("/api/v1/listings") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    ApartmentAd.serializer(),
+                    sampleAd("no-geo").copy(lat = null, lon = null, distanceMeters = null),
+                )
+            )
+        }
+
+        val response = client.get("/api/v1/listings")
+        val listings = json.decodeFromString(ListSerializer(ApartmentAd.serializer()), response.bodyAsText())
+        val stored = listings.first { it.id == "no-geo" }
+
+        assertEquals(null, stored.lat)
+        assertEquals(null, stored.lon)
+        assertEquals(null, stored.distanceMeters)
     }
 
     private companion object {

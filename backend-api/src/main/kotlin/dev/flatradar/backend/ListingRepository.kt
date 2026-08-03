@@ -1,12 +1,19 @@
 package dev.flatradar.backend
 
 import dev.flatradar.backend.db.ListingsTable
+import dev.flatradar.backend.db.NotificationOutboxTable
 import dev.flatradar.shared.ApartmentAd
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -14,6 +21,9 @@ import java.time.ZoneOffset
 import javax.sql.DataSource
 
 enum class InsertResult { NEW, EXISTING }
+
+/** One undelivered (or previously failed) notification, joined with the listing it's about. */
+data class OutboxItem(val outboxId: Long, val ad: ApartmentAd, val attempts: Int)
 
 class ListingRepository(dataSource: DataSource) {
     private val db = Database.connect(dataSource)
@@ -57,36 +67,88 @@ class ListingRepository(dataSource: DataSource) {
             it[url] = ad.url
             it[listingSource] = ad.source
             it[district] = ad.district
+            it[lat] = ad.lat
+            it[lon] = ad.lon
+            it[distanceMeters] = ad.distanceMeters
             it[this.firstSeen] = firstSeen
             it[this.lastSeen] = now
+        }
+
+        // Same transaction as the upsert above: either both the listing and its
+        // outbox row land, or neither does - a notification can never be owed
+        // without a durable record of that fact.
+        if (!exists) {
+            NotificationOutboxTable.insert {
+                it[listingId] = ad.id
+                it[createdAt] = now
+            }
         }
 
         if (exists) InsertResult.EXISTING else InsertResult.NEW
     }
 
     fun findAll(): List<ApartmentAd> = transaction(db) {
-        ListingsTable.selectAll().map { row ->
-            ApartmentAd(
-                id = row[ListingsTable.id],
-                title = row[ListingsTable.title],
-                size = row[ListingsTable.size],
-                rooms = row[ListingsTable.rooms],
-                bedrooms = row[ListingsTable.bedrooms],
-                bathrooms = row[ListingsTable.bathrooms],
-                floor = row[ListingsTable.floor],
-                apartmentType = row[ListingsTable.apartmentType],
-                availableFrom = row[ListingsTable.availableFrom],
-                deposit = row[ListingsTable.deposit],
-                baseRent = row[ListingsTable.baseRent],
-                sideCosts = row[ListingsTable.sideCosts],
-                heatingCosts = row[ListingsTable.heatingCosts],
-                totalRent = row[ListingsTable.totalRent],
-                location = row[ListingsTable.location],
-                url = row[ListingsTable.url],
-                source = row[ListingsTable.listingSource],
-                district = row[ListingsTable.district],
-                timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli()
-            )
+        ListingsTable.selectAll().map(::rowToAd)
+    }
+
+    /**
+     * Unsent (or previously-failed-but-under-the-retry-cap) outbox rows, oldest
+     * first, joined with the listing data [Notifier] needs to build a message.
+     *
+     * No `SELECT ... FOR UPDATE`: today there is exactly one [OutboxWorker]
+     * polling in-process. If `backend-api` ever runs multiple replicas, add
+     * `FOR UPDATE SKIP LOCKED` here so pollers don't double-send.
+     */
+    fun fetchUnsentOutbox(limit: Int, maxAttempts: Int): List<OutboxItem> = transaction(db) {
+        (NotificationOutboxTable innerJoin ListingsTable)
+            .selectAll()
+            .andWhere { NotificationOutboxTable.sentAt.isNull() }
+            .andWhere { NotificationOutboxTable.attempts less maxAttempts }
+            .orderBy(NotificationOutboxTable.createdAt to SortOrder.ASC)
+            .limit(limit)
+            .map { row -> OutboxItem(row[NotificationOutboxTable.id], rowToAd(row), row[NotificationOutboxTable.attempts]) }
+    }
+
+    fun markOutboxSent(outboxId: Long): Unit = transaction(db) {
+        NotificationOutboxTable.update({ NotificationOutboxTable.id eq outboxId }) {
+            it[sentAt] = OffsetDateTime.now(ZoneOffset.UTC)
         }
+    }
+
+    /** [newAttemptCount] is computed by the caller (typically `previousAttempts + 1`) to avoid a read-modify-write race. */
+    fun markOutboxFailed(outboxId: Long, newAttemptCount: Int, error: String): Unit = transaction(db) {
+        NotificationOutboxTable.update({ NotificationOutboxTable.id eq outboxId }) {
+            it[attempts] = newAttemptCount
+            it[lastError] = error.take(MAX_ERROR_LENGTH)
+        }
+    }
+
+    private fun rowToAd(row: ResultRow): ApartmentAd = ApartmentAd(
+        id = row[ListingsTable.id],
+        title = row[ListingsTable.title],
+        size = row[ListingsTable.size],
+        rooms = row[ListingsTable.rooms],
+        bedrooms = row[ListingsTable.bedrooms],
+        bathrooms = row[ListingsTable.bathrooms],
+        floor = row[ListingsTable.floor],
+        apartmentType = row[ListingsTable.apartmentType],
+        availableFrom = row[ListingsTable.availableFrom],
+        deposit = row[ListingsTable.deposit],
+        baseRent = row[ListingsTable.baseRent],
+        sideCosts = row[ListingsTable.sideCosts],
+        heatingCosts = row[ListingsTable.heatingCosts],
+        totalRent = row[ListingsTable.totalRent],
+        location = row[ListingsTable.location],
+        url = row[ListingsTable.url],
+        source = row[ListingsTable.listingSource],
+        district = row[ListingsTable.district],
+        lat = row[ListingsTable.lat],
+        lon = row[ListingsTable.lon],
+        distanceMeters = row[ListingsTable.distanceMeters],
+        timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli()
+    )
+
+    private companion object {
+        const val MAX_ERROR_LENGTH = 2000
     }
 }

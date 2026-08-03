@@ -27,6 +27,7 @@ services:
       JDBC_USER: app
       JDBC_PASSWORD: ${POSTGRES_PASSWORD:-app}
       PORT: "8080"
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
     ports:
       - "8080:8080"
     healthcheck:

@@ -9,6 +9,7 @@ class SwapDetectorTest {
     @Test
     fun title_signal() {
         assertTrue(SwapDetector.isSwapByTitle("TAUSCHWOHNUNG - Hamburg Nord"))
+        assertTrue(SwapDetector.isSwapByTitle("Wohnungstausch: Käthnerort 57"))
         assertFalse(SwapDetector.isSwapByTitle("Schöne 2-Zi-Wohnung"))
         assertFalse(SwapDetector.isSwapByTitle(null))
     }

@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: V2__add_geo_coordinates
+      author: mathiswi
+      changes:
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: lat
+                  type: DOUBLE PRECISION
+              - column:
+                  name: lon
+                  type: DOUBLE PRECISION
+              - column:
+                  name: distance_meters
+                  type: INTEGER

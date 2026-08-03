@@ -1,3 +1,7 @@
 databaseChangeLog:
   - include:
       file: db/changelog/V1__init.yaml
+  - include:
+      file: db/changelog/V2__add_geo_coordinates.yaml
+  - include:
+      file: db/changelog/V3__add_notification_outbox.yaml
