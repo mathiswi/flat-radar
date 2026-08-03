@@ -14,5 +14,13 @@
     "url": "https://www.kleinanzeigen.de/s-wohnung-mieten/hamburg/eimsbuettel/anzeige:angebote",
     "district": "Eimsbuettel",
     "enabled": true
+  },
+  {
+    "id": "barmbek-is24",
+    "displayName": "ImmoScout24 Barmbek-Nord (radius)",
+    "source": "immoscout24",
+    "url": "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=Hamburg%3B%3B%3B%3B%3BBarmbek-Nord%3B&numberofrooms=2.0-3.0&price=-1500.0&livingspace=55.0-80.0&pricetype=calculatedtotalrent&geocoordinates=53.59425%3B10.04675%3B2.0&enteredFrom=result_list",
+    "district": "Barmbek-Nord",
+    "enabled": true
   }
 ]

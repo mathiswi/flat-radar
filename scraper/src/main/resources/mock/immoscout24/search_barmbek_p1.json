@@ -1,0 +1,595 @@
+{
+  "totalResults": 166,
+  "pageSize": 20,
+  "pageNumber": 1,
+  "numberOfPages": 2,
+  "numberOfListings": 166,
+  "resultListItems": [
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169101611",
+        "title": "*befristet* Möblierte 2,5-Zimmer-Wohnung in Hamburg-Alsterdorf | 01.09.2026 – 31.08.2027",
+        "address": {
+          "line": "22297 Hamburg, Alsterdorf (unvollständige Adresse)",
+          "postcode": "22297"
+        },
+        "isPrivate": true,
+        "published": "vor 3 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "930 €"
+          },
+          {
+            "label": "",
+            "value": "63 m²"
+          },
+          {
+            "label": "",
+            "value": "2,5 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169193126",
+        "title": "Tauschwohnung: SAGA Tauschwohnung 3 gegen ab 4 zimmer",
+        "address": {
+          "line": "22309 Hamburg, Barmbek-Nord (unvollständige Adresse)",
+          "postcode": "22309"
+        },
+        "isPrivate": false,
+        "published": "vor 10 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "530 €"
+          },
+          {
+            "label": "",
+            "value": "63 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169192532",
+        "title": "Tauschwohnung: Helle 3 Zimmer Wohnung mit Balkon zw. Alster und Stadtpark ",
+        "address": {
+          "distance": "1,6 km",
+          "line": "Meerweinstr. 8, 22303 Hamburg, Winterhude",
+          "lat": 53.58692,
+          "lon": 10.02665
+        },
+        "isPrivate": false,
+        "published": "vor 11 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.270 €"
+          },
+          {
+            "label": "",
+            "value": "70 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169192446",
+        "title": "Tauschwohnung: 3 Zimmer Wohnung am Goldbekkanal und Stadtpark",
+        "address": {
+          "line": "22303 Hamburg, Winterhude (unvollständige Adresse)",
+          "postcode": "22303"
+        },
+        "isPrivate": false,
+        "published": "vor 11 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "850 €"
+          },
+          {
+            "label": "",
+            "value": "74 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169192164",
+        "title": "Tauschwohnung: Gut geschnitten 2,5 Zimmer Wohnung in Winterhude",
+        "address": {
+          "distance": "1,6 km",
+          "line": "Maacksgasse 3A, 22303 Hamburg, Winterhude",
+          "lat": 53.58804,
+          "lon": 10.02462
+        },
+        "isPrivate": false,
+        "published": "vor 11 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "980 €"
+          },
+          {
+            "label": "",
+            "value": "64 m²"
+          },
+          {
+            "label": "",
+            "value": "2,5 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169192102",
+        "title": "Gemütliche 2 Zimmerwohnung zur Miete in Winterhude - Wentzel-Dr.",
+        "address": {
+          "distance": "1,6 km",
+          "line": "Großheidestr. 1, 22303 Hamburg, Winterhude",
+          "lat": 53.58466,
+          "lon": 10.02788
+        },
+        "isPrivate": false,
+        "published": "vor 11 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "625 €"
+          },
+          {
+            "label": "",
+            "value": "57 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169192053",
+        "title": "Tauschwohnung: Gemütliche Altbauwohnung in Winterhude",
+        "address": {
+          "line": "22303 Hamburg, Winterhude (unvollständige Adresse)",
+          "postcode": "22303"
+        },
+        "isPrivate": false,
+        "published": "vor 11 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.114 €"
+          },
+          {
+            "label": "",
+            "value": "64 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169191958",
+        "title": "Tauschwohnung: schön geschnittene 2,5 Zimmer Wohnung mit 2 Balkonen",
+        "address": {
+          "distance": "1,4 km",
+          "line": "Sentastraße 39, 22083 Hamburg, Barmbek-Süd",
+          "lat": 53.58366,
+          "lon": 10.03639
+        },
+        "isPrivate": false,
+        "published": "vor 12 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "800 €"
+          },
+          {
+            "label": "",
+            "value": "65 m²"
+          },
+          {
+            "label": "",
+            "value": "2,5 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169191674",
+        "title": "Tauschwohnung: Tausch deine große Wohnung in Hamburg!",
+        "address": {
+          "line": "22303 Hamburg, Winterhude (unvollständige Adresse)",
+          "postcode": "22303"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "650 €"
+          },
+          {
+            "label": "",
+            "value": "55 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169190870",
+        "title": "Tauschwohnung: Helle 2 Zimmer Maisonette Wohnung mit Balkon",
+        "address": {
+          "distance": "988 m",
+          "line": "Benzstraße 15, 22177 Hamburg, Bramfeld",
+          "lat": 53.59909,
+          "lon": 10.05931
+        },
+        "isPrivate": false,
+        "published": "vor 13 Stunden",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.000 €"
+          },
+          {
+            "label": "",
+            "value": "64 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169170801",
+        "title": "Tauschwohnung: 3-Zimmer-Wohnung in Hamburg-Nord zum Tausch",
+        "address": {
+          "line": "22049 Hamburg, Dulsberg (unvollständige Adresse)",
+          "postcode": "22049"
+        },
+        "isPrivate": false,
+        "published": "vor einem Tag",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "800 €"
+          },
+          {
+            "label": "",
+            "value": "70 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "169139749",
+        "title": "Tauschwohnung: Hübsche Altbauwohnung in Dulsberg",
+        "address": {
+          "line": "22049 Hamburg, Dulsberg (unvollständige Adresse)",
+          "postcode": "22049"
+        },
+        "isPrivate": false,
+        "published": "vor einem Monat",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "750 €"
+          },
+          {
+            "label": "",
+            "value": "63 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "106403560",
+        "title": "Gepflegte 3-Zimmer-EG-Wohnung mit Terasse und Einbauküche in Bramfeld, Hamburg",
+        "address": {
+          "distance": "1,6 km",
+          "line": "Olewischtwiet 30b, 22177 Hamburg, Bramfeld",
+          "lat": 53.60532,
+          "lon": 10.06318
+        },
+        "isPrivate": true,
+        "published": "vor 2 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "950 €"
+          },
+          {
+            "label": "",
+            "value": "72 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "164099184",
+        "title": "Wohnungstausch: Käthnerort 57",
+        "address": {
+          "distance": "1,4 km",
+          "line": "Käthnerort 57, 22000 Hamburg-Nord, Hamburg, Barmbek-Süd",
+          "lat": 53.58295,
+          "lon": 10.03792
+        },
+        "isPrivate": false,
+        "published": "vor 10 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.100 €"
+          },
+          {
+            "label": "",
+            "value": "70 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "166359807",
+        "title": "Wohnungstausch: Hartzloh 44",
+        "address": {
+          "distance": "881 m",
+          "line": "Hartzloh 44, 22000 Hamburg-Nord, Hamburg, Barmbek-Nord",
+          "lat": 53.60176,
+          "lon": 10.04254
+        },
+        "isPrivate": false,
+        "published": "vor 4 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "700 €"
+          },
+          {
+            "label": "",
+            "value": "73 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "166732158",
+        "title": "Wohnungstausch: Alte Wöhr 9A",
+        "address": {
+          "distance": "613 m",
+          "line": "Alte Wöhr A 9, 22000 Hamburg-Nord, Hamburg, Barmbek-Nord",
+          "lat": 53.59811,
+          "lon": 10.04012
+        },
+        "isPrivate": false,
+        "published": "vor 3 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.200 €"
+          },
+          {
+            "label": "",
+            "value": "68 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "167441995",
+        "title": "Wohnungstausch: Nordschleswiger Straße 45",
+        "address": {
+          "distance": "1,7 km",
+          "line": "Nordschleswiger Straße 45, 22000 Hamburg-Nord, Hamburg, Dulsberg",
+          "lat": 53.58428,
+          "lon": 10.0669
+        },
+        "isPrivate": false,
+        "published": "vor 10 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "600 €"
+          },
+          {
+            "label": "",
+            "value": "73 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "167442361",
+        "title": "Wohnungstausch: Benzstraße 15",
+        "address": {
+          "distance": "997 m",
+          "line": "Benzstraße 15, 22000 Wandsbek, Hamburg, Bramfeld",
+          "lat": 53.59941,
+          "lon": 10.05909
+        },
+        "isPrivate": false,
+        "published": "vor 2 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.000 €"
+          },
+          {
+            "label": "",
+            "value": "64 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "167442393",
+        "title": "Wohnungstausch: Rübenkamp 263",
+        "address": {
+          "distance": "1,9 km",
+          "line": "Rübenkamp 263, 22000 Hamburg-Nord, Hamburg, Ohlsdorf",
+          "lat": 53.60934,
+          "lon": 10.0331
+        },
+        "isPrivate": false,
+        "published": "vor 2 Monaten",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "590 €"
+          },
+          {
+            "label": "",
+            "value": "56 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "167916826",
+        "title": "Wohnungstausch: Saarlandstraße 9",
+        "address": {
+          "distance": "1,3 km",
+          "line": "Saarlandstraße 9, 22000 Hamburg-Nord, Hamburg, Winterhude",
+          "lat": 53.5861,
+          "lon": 10.03301
+        },
+        "isPrivate": false,
+        "published": "vor einem Jahr",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "950 €"
+          },
+          {
+            "label": "",
+            "value": "65 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    }
+  ]
+}

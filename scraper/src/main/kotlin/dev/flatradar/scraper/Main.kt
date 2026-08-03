@@ -94,8 +94,9 @@ private suspend fun processFeed(
     }
 
     return try {
-        val html = fetch(httpClient, feed.url)
-        val refs = parser.parseSearch(html)
+        val searchUrl = parser.searchUrl(feed.url)
+        val firstPage = fetch(httpClient, searchUrl)
+        val refs = fetchAllSearchPages(parser, searchUrl, firstPage, httpClient, detailFetchLimiter)
         println("[${feed.id}] ${refs.size} ad(s) on search page")
 
         val existingIds = backendClient.preFilter(refs.map { it.adId })
@@ -110,7 +111,7 @@ private suspend fun processFeed(
                             delay(Random.nextLong(DETAIL_FETCH_DELAY_RANGE.first, DETAIL_FETCH_DELAY_RANGE.last))
                             fetch(httpClient, ref.url)
                         }
-                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, rentFallback)
+                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, rentFallback, ref)
                         if (ad == null) {
                             println("[${feed.id}] skip (null): ${ref.adId} ${ref.title}")
                         } else {
@@ -140,4 +141,35 @@ private suspend fun processFeed(
         e.printStackTrace()
         emptyList()
     }
+}
+
+/**
+ * Parses the already-fetched first search-result page, then - for paginated
+ * sources like immoscout24 - fetches and parses any remaining pages through the
+ * same [detailFetchLimiter] used for detail fetches. Single-page sources (the
+ * default [SourceParser.nextSearchPageUrls]) never enter the extra-pages branch,
+ * so this is a no-op wrapper for them beyond the initial [SourceParser.parseSearch] call.
+ */
+private suspend fun fetchAllSearchPages(
+    parser: SourceParser,
+    firstPageUrl: String,
+    firstPageResponse: String,
+    httpClient: HttpClient,
+    detailFetchLimiter: Semaphore,
+): List<AdRef> {
+    val firstPageRefs = parser.parseSearch(firstPageResponse)
+    val extraPageUrls = parser.nextSearchPageUrls(firstPageUrl, firstPageResponse)
+    if (extraPageUrls.isEmpty()) return firstPageRefs
+
+    val extraRefs = coroutineScope {
+        extraPageUrls.map { pageUrl ->
+            async {
+                detailFetchLimiter.withPermit {
+                    delay(Random.nextLong(DETAIL_FETCH_DELAY_RANGE.first, DETAIL_FETCH_DELAY_RANGE.last))
+                    parser.parseSearch(fetch(httpClient, pageUrl))
+                }
+            }
+        }.awaitAll().flatten()
+    }
+    return firstPageRefs + extraRefs
 }

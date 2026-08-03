@@ -21,9 +21,11 @@ package dev.flatradar.scraper.kleinanzeigen
  */
 object SwapDetector {
 
-    /** Lightweight title check — call from SearchPageParser to skip the detail fetch entirely. */
+    /** Lightweight title check — call from SearchPageParser to skip the detail fetch entirely.
+     * Delegates to the source-agnostic [dev.flatradar.scraper.SwapDetector]; kept here too so
+     * existing call sites/tests in this package don't need to change import. */
     fun isSwapByTitle(title: String?): Boolean =
-        title != null && title.trim().uppercase().startsWith("TAUSCHWOHNUNG")
+        dev.flatradar.scraper.SwapDetector.isSwapByTitle(title)
 
     /** Lightweight URL-slug check — call from SearchPageParser. Pass the ad's data-href, full URL, or slug. */
     fun isSwapBySlug(url: String?): Boolean {

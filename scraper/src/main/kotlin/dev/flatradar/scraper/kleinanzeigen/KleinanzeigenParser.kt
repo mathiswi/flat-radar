@@ -27,6 +27,8 @@ object KleinanzeigenParser : SourceParser {
         district: String,
         timestamp: Long,
         rentFallback: RentFallback?,
+        ref: AdRef?,
     ): ApartmentAd? =
+        // No geo data on this source's search/detail pages (see AdRef.lat KDoc), so ref is unused.
         DetailPageParser.parse(html, url, district, timestamp, rentFallback)
 }

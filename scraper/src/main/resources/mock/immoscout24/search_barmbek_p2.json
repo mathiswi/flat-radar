@@ -1,0 +1,233 @@
+{
+  "totalResults": 166,
+  "pageSize": 8,
+  "pageNumber": 2,
+  "numberOfPages": 2,
+  "numberOfListings": 166,
+  "resultListItems": [
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168935552",
+        "title": "Tauschwohnung: 2 Zimmer Wohnung in Winterhude",
+        "address": {
+          "line": "22303 Hamburg, Winterhude (unvollständige Adresse)",
+          "postcode": "22303"
+        },
+        "isPrivate": false,
+        "published": "vor 11 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "600 €"
+          },
+          {
+            "label": "",
+            "value": "55 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168901776",
+        "title": "Tauschwohnung: Gemütliche 2-Zimmer-Wohnung in Barmbek",
+        "address": {
+          "line": "22307 Hamburg, Barmbek-Nord (unvollständige Adresse)",
+          "postcode": "22307"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "595 €"
+          },
+          {
+            "label": "",
+            "value": "56 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900981",
+        "title": "Tauschwohnung: SAGA Tausch von 3 zu 4  Zimmer",
+        "address": {
+          "line": "22303 Hamburg, Barmbek-Nord (unvollständige Adresse)",
+          "postcode": "22303"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "600 €"
+          },
+          {
+            "label": "",
+            "value": "73 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900973",
+        "title": "Tauschwohnung: Helle Wohnung direkt am Kanal",
+        "address": {
+          "line": "22305 Hamburg, Barmbek-Nord (unvollständige Adresse)",
+          "postcode": "22305"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "852 €"
+          },
+          {
+            "label": "",
+            "value": "80 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900976",
+        "title": "Tauschwohnung: 2 Zi. zentral Nähe Eilbekkanal gegen Whg. Osten und Umland",
+        "address": {
+          "line": "22081 Hamburg, Barmbek-Süd (unvollständige Adresse)",
+          "postcode": "22081"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "950 €"
+          },
+          {
+            "label": "",
+            "value": "58 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900896",
+        "title": "Tauschwohnung: Tausche meine 2-Zimmer-Flat in Hamburg-Nord",
+        "address": {
+          "line": "22083 Hamburg, Barmbek-Süd (unvollständige Adresse)",
+          "postcode": "22083"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.200 €"
+          },
+          {
+            "label": "",
+            "value": "60 m²"
+          },
+          {
+            "label": "",
+            "value": "2 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900891",
+        "title": "Tauschwohnung: Schöne 3 Zimmer Wohnung in Barmbek(U3 Dehnhaide) zum Tausch",
+        "address": {
+          "line": "22081 Hamburg, Barmbek-Süd (unvollständige Adresse)",
+          "postcode": "22081"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "1.100 €"
+          },
+          {
+            "label": "",
+            "value": "63 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    },
+    {
+      "type": "EXPOSE_RESULT",
+      "item": {
+        "id": "168900709",
+        "title": "Tauschwohnung: TOP Wohnung in Wandsbek",
+        "address": {
+          "line": "22047 Hamburg, Wandsbek (unvollständige Adresse)",
+          "postcode": "22047"
+        },
+        "isPrivate": false,
+        "published": "vor 12 Tagen",
+        "realEstateType": "apartmentrent",
+        "attributes": [
+          {
+            "label": "",
+            "value": "504 €"
+          },
+          {
+            "label": "",
+            "value": "70 m²"
+          },
+          {
+            "label": "",
+            "value": "3 Zi."
+          }
+        ]
+      }
+    }
+  ]
+}

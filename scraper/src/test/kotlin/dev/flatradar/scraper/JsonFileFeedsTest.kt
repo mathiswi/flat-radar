@@ -66,6 +66,14 @@ class JsonFileFeedsTest {
     }
 
     @Test
+    fun immoscout24_parser_is_registered_under_its_source_key() {
+        assertEquals(
+            dev.flatradar.scraper.immoscout24.ImmoscoutParser,
+            SourceParsers.get("immoscout24"),
+        )
+    }
+
+    @Test
     fun feedconfig_unknown_keys_are_tolerated() = runTest {
         // Forward-compat: when the future backend/DB adds fields like lastFetched
         // or ownerUserId, existing scraper binaries must not break on the older
