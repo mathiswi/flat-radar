@@ -1,6 +1,8 @@
 FROM gradle:8.9-jdk21 AS build
 WORKDIR /app
 COPY settings.gradle.kts build.gradle.kts gradle.properties ./
+COPY gradle gradle
+COPY gradlew ./
 COPY shared/build.gradle.kts shared/build.gradle.kts
 COPY backend-api/build.gradle.kts backend-api/build.gradle.kts
 COPY shared/src shared/src
