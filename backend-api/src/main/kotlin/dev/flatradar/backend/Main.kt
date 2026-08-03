@@ -54,6 +54,10 @@ fun Application.module(
 
     install(CallLogging) { level = Level.INFO }
 
+    install(IpWhitelist) {
+        excludePaths = listOf("/api/v1/health", "/api/v1/ready")
+    }
+
     install(ContentNegotiation) { json(json) }
 
     startOutboxWorker(repository)
