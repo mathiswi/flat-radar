@@ -38,6 +38,7 @@ object Diagnose {
         )
 
         println("  length:   $length bytes")
+        println("  preview:  ${html.take(300).replace("\n", " ").replace("\r", "")}")
         println("  markers:")
         for ((name, present) in markers) {
             println("    %-22s : %s".format(name, if (present) "PRESENT" else "absent"))

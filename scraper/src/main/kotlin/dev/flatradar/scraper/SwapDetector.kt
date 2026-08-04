@@ -13,6 +13,6 @@ object SwapDetector {
     fun isSwapByTitle(title: String?): Boolean {
         if (title == null) return false
         val t = title.trim().uppercase()
-        return t.startsWith("TAUSCHWOHNUNG") || t.startsWith("WOHNUNGSTAUSCH")
+        return t.startsWith("TAUSCHWOHNUNG") || t.startsWith("WOHNUNGSTAUSCH") || t.startsWith("WOHNUNGSSWAP")
     }
 }

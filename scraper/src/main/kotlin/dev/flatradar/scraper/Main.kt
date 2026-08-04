@@ -1,7 +1,7 @@
 package dev.flatradar.scraper
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.java.Java
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.async
@@ -32,7 +32,7 @@ private val DETAIL_FETCH_DELAY_RANGE = 500L..1500L
  * notices a broken deployment.
  */
 suspend fun main(args: Array<String>) {
-    val httpClient = HttpClient(Java) {
+    val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
     }
 

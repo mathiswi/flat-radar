@@ -33,7 +33,7 @@ object SwapDetector {
         val slug = url.substringAfterLast("/s-anzeige/", "")
             .substringBefore("-")
             .lowercase()
-        return slug.startsWith("tauschwohnung")
+        return slug.startsWith("tauschwohnung") || slug.startsWith("wohnungsswap")
     }
 
     fun isSwapByAccount(sellerName: String?): Boolean =
