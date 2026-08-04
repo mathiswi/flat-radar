@@ -90,6 +90,13 @@ object ExposeParser {
         val totalRent = attrs[AttrKeys.GESAMTMIETE]?.let(ImmoscoutFormats::parseEuros)
             ?: topAttr(topAttrs, AttrKeys.WARMMIETE)?.let(ImmoscoutFormats::parseEuros)
 
+        // --- Images ---
+        val mediaSection = response.sections.firstOrNull { it.type == "MEDIA" }
+        val imageUrls = mediaSection?.media
+            ?.filter { it.type == "PICTURE" }
+            ?.mapNotNull { it.fullImageUrl }
+            ?: emptyList()
+
         return ApartmentAd(
             id = id,
             title = title,
@@ -109,6 +116,7 @@ object ExposeParser {
             url = webUrl(id),
             source = "immoscout24",
             district = district,
+            imageUrls = imageUrls,
             timestamp = timestamp,
         )
     }
@@ -163,6 +171,7 @@ data class ExposeSection(
     val title: String? = null,
     val addressLine2: String? = null,
     val attributes: List<ExposeAttribute> = emptyList(),
+    val media: List<ExposeMedia>? = null,
 )
 
 @Serializable
@@ -170,4 +179,11 @@ data class ExposeAttribute(
     val type: String? = null,
     val label: String? = null,
     val text: String? = null,
+)
+
+@Serializable
+data class ExposeMedia(
+    val type: String? = null,
+    val previewImageUrl: String? = null,
+    val fullImageUrl: String? = null,
 )

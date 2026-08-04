@@ -27,6 +27,8 @@ object ListingsTable : Table("listings") {
     val lat = double("lat").nullable()
     val lon = double("lon").nullable()
     val distanceMeters = integer("distance_meters").nullable()
+    val thumbnailUrl = text("thumbnail_url").nullable()
+    val imageUrls = text("image_urls")
     val firstSeen = timestampWithTimeZone("first_seen")
     val lastSeen = timestampWithTimeZone("last_seen")
 

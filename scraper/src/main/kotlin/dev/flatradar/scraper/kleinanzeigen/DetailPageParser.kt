@@ -80,6 +80,14 @@ object DetailPageParser {
         // --- Location ---
         val location = doc.selectFirst(Selectors.LOCALITY)?.text()?.trim() ?: ""
 
+        // --- Images ---
+        val thumbnailUrl = doc.selectFirst(Selectors.OG_IMAGE)
+            ?.attr("content")
+            ?.takeIf { it.isNotBlank() }
+        val imageUrls = doc.select(Selectors.GALLERY_IMAGE)
+            .mapNotNull { el -> el.attr("data-imgsrc").takeIf { it.isNotBlank() } }
+            .distinct()
+
         return ApartmentAd(
             id = adId,
             title = safeTitle,
@@ -99,6 +107,8 @@ object DetailPageParser {
             url = url,
             source = "kleinanzeigen",
             district = district,
+            thumbnailUrl = thumbnailUrl,
+            imageUrls = imageUrls,
             timestamp = timestamp
         )
     }
@@ -183,5 +193,7 @@ object DetailPageParser {
         const val CANONICAL = "link[rel=canonical]"
         const val SELLER = "#viewad-contact .userprofile-vip"
         const val DESCRIPTION = "#viewad-description-text"
+        const val OG_IMAGE = "meta[property=og:image]"
+        const val GALLERY_IMAGE = ".galleryimage-element[data-imgsrc]"
     }
 }

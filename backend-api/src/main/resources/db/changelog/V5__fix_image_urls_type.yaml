@@ -1,0 +1,7 @@
+databaseChangeLog:
+  # Column type already fixed manually — this changeset exists only to keep
+  # the migration order intact.
+  - changeSet:
+      id: V5__fix_image_urls_type
+      author: mathiswi
+      changes: []

@@ -1,0 +1,7 @@
+databaseChangeLog:
+  # Column already added manually — this changeset exists only to keep
+  # the migration order intact and prevent Liquibase checksum warnings.
+  - changeSet:
+      id: V4__add_image_urls
+      author: mathiswi
+      changes: []

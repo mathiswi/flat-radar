@@ -26,5 +26,7 @@ data class ApartmentAd(
     val lat: Double? = null,
     val lon: Double? = null,
     val distanceMeters: Int? = null,
+    val thumbnailUrl: String? = null,
+    val imageUrls: List<String> = emptyList(),
     val timestamp: Long
 )

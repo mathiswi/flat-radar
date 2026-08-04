@@ -14,6 +14,7 @@ data class AdRef(
     val adId: String,
     val url: String,
     val title: String,
+    val thumbnailUrl: String? = null,
     val lat: Double? = null,
     val lon: Double? = null,
     val distanceMeters: Int? = null,

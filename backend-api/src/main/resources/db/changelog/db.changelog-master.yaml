@@ -5,3 +5,7 @@ databaseChangeLog:
       file: db/changelog/V2__add_geo_coordinates.yaml
   - include:
       file: db/changelog/V3__add_notification_outbox.yaml
+  - include:
+      file: db/changelog/V4__add_image_urls.yaml
+  - include:
+      file: db/changelog/V5__fix_image_urls_type.yaml

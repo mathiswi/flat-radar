@@ -42,6 +42,7 @@ object SearchListParser {
                     adId = id,
                     url = ExposeParser.exposeUrl(id),
                     title = title,
+                    thumbnailUrl = item.pictures?.firstOrNull()?.url,
                     lat = item.address?.lat,
                     lon = item.address?.lon,
                     distanceMeters = item.address?.distance?.let(ImmoscoutFormats::parseDistanceMeters),
@@ -72,6 +73,12 @@ data class ExposeResultItem(
     val id: String? = null,
     val title: String? = null,
     val address: ExposeResultAddress? = null,
+    val pictures: List<SearchPicture>? = null,
+)
+
+@Serializable
+data class SearchPicture(
+    val url: String? = null,
 )
 
 @Serializable

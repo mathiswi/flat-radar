@@ -154,3 +154,24 @@ databaseChangeLog:
                   name: sent_at
               - column:
                   name: created_at
+  - changeSet:
+      id: V4__add_image_urls
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V4__add_image_urls.yaml.
+        # H2 doesn't support JSONB, so we use TEXT with default '[]'.
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: thumbnail_url
+                  type: TEXT
+              - column:
+                  name: image_urls
+                  type: TEXT
+                  defaultValue: '[]'
+  - changeSet:
+      id: V5__fix_image_urls_type
+      author: mathiswi
+      changes:
+        # No-op for H2 (already TEXT), but keeps changelogs in sync.

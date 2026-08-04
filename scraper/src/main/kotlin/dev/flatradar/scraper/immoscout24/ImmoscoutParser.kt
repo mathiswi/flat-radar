@@ -49,6 +49,11 @@ object ImmoscoutParser : SourceParser {
         // lat/lon/distanceMeters come from the search-list ref, not the expose response
         // itself (see SearchListParser's KDoc), so they're merged in here.
         ExposeParser.parse(html, url, district, timestamp)?.let { ad ->
-            ad.copy(lat = ref?.lat, lon = ref?.lon, distanceMeters = ref?.distanceMeters)
+            ad.copy(
+                thumbnailUrl = ref?.thumbnailUrl,
+                lat = ref?.lat,
+                lon = ref?.lon,
+                distanceMeters = ref?.distanceMeters,
+            )
         }
 }
