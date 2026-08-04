@@ -55,7 +55,7 @@ fun Application.module(
     install(CallLogging) { level = Level.INFO }
 
     install(IpWhitelist) {
-        excludePaths = listOf("/api/v1/health", "/api/v1/ready")
+        excludePaths = listOf("$API_V1/health", "$API_V1/ready")
     }
 
     install(ContentNegotiation) { json(json) }
@@ -65,6 +65,7 @@ fun Application.module(
     routing {
         healthRoutes(dataSource)
         listingRoutes(repository)
+        statsRoutes(repository)
     }
 }
 

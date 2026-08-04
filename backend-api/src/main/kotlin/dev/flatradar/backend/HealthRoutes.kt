@@ -22,7 +22,7 @@ import javax.sql.DataSource
  *   doesn't fire until the backend can actually serve traffic.
  */
 fun Route.healthRoutes(dataSource: DataSource) {
-    route("/api/v1") {
+    route(API_V1) {
         get("/health") {
             call.respond(StatusResponse("up"))
         }

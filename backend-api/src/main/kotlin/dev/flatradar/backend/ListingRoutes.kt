@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 fun Route.listingRoutes(repository: ListingRepository) {
-    route("/api/v1/listings") {
+    route("$API_V1/listings") {
         post("/ids") {
             val ids = call.receive<List<String>>()
             val existing = withContext(Dispatchers.IO) { repository.existingIds(ids) }

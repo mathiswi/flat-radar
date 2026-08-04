@@ -3,12 +3,17 @@ package dev.flatradar.backend
 import dev.flatradar.backend.db.ListingsTable
 import dev.flatradar.backend.db.NotificationOutboxTable
 import dev.flatradar.shared.ApartmentAd
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.max
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
@@ -70,6 +75,8 @@ class ListingRepository(dataSource: DataSource) {
             it[lat] = ad.lat
             it[lon] = ad.lon
             it[distanceMeters] = ad.distanceMeters
+            it[thumbnailUrl] = ad.thumbnailUrl
+            it[imageUrls] = imageUrlsJson.encodeToString(ListSerializer(serializer<String>()), ad.imageUrls)
             it[this.firstSeen] = firstSeen
             it[this.lastSeen] = now
         }
@@ -89,6 +96,34 @@ class ListingRepository(dataSource: DataSource) {
 
     fun findAll(): List<ApartmentAd> = transaction(db) {
         ListingsTable.selectAll().map(::rowToAd)
+    }
+
+    fun countAll(): Int = transaction(db) {
+        ListingsTable.selectAll().count().toInt()
+    }
+
+    /** Rows still in the outbox that the worker will keep retrying (attempts < [maxAttempts]). */
+    fun countPendingOutbox(maxAttempts: Int): Int = transaction(db) {
+        NotificationOutboxTable.selectAll()
+            .andWhere { NotificationOutboxTable.sentAt.isNull() }
+            .andWhere { NotificationOutboxTable.attempts less maxAttempts }
+            .count()
+            .toInt()
+    }
+
+    /** Rows in the outbox that have exhausted retries (attempts >= [maxAttempts]) and need manual attention. */
+    fun countDeadLetteredOutbox(maxAttempts: Int): Int = transaction(db) {
+        NotificationOutboxTable.selectAll()
+            .andWhere { NotificationOutboxTable.sentAt.isNull() }
+            .andWhere { NotificationOutboxTable.attempts greaterEq maxAttempts }
+            .count()
+            .toInt()
+    }
+
+    /** Most recent [ListingsTable.lastSeen] across all listings, or null if the table is empty. */
+    fun lastScrapeTimestamp(): OffsetDateTime? = transaction(db) {
+        val maxCol = ListingsTable.lastSeen.max()
+        ListingsTable.select(maxCol).firstOrNull()?.get(maxCol)
     }
 
     /**
@@ -145,10 +180,13 @@ class ListingRepository(dataSource: DataSource) {
         lat = row[ListingsTable.lat],
         lon = row[ListingsTable.lon],
         distanceMeters = row[ListingsTable.distanceMeters],
+        thumbnailUrl = row[ListingsTable.thumbnailUrl],
+        imageUrls = imageUrlsJson.decodeFromString(ListSerializer(serializer<String>()), row[ListingsTable.imageUrls]),
         timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli()
     )
 
     private companion object {
         const val MAX_ERROR_LENGTH = 2000
+        private val imageUrlsJson = Json { ignoreUnknownKeys = true }
     }
 }
