@@ -53,7 +53,11 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      # 127.0.0.1, not localhost: /etc/hosts resolves localhost to both
+      # 127.0.0.1 and ::1, busybox wget tries the IPv6 one first, and the
+      # server (HOSTNAME=0.0.0.0 above) only binds IPv4 - so "localhost"
+      # gets connection-refused on ::1 with no v4 fallback.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
       interval: 10s
       timeout: 3s
       retries: 5
