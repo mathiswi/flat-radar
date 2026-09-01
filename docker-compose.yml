@@ -44,7 +44,7 @@ services:
     environment:
       BACKEND_URL: http://backend-api:8080
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
       interval: 10s
