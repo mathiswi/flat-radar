@@ -43,6 +43,13 @@ services:
         condition: service_healthy
     environment:
       BACKEND_URL: http://backend-api:8080
+      # Docker auto-sets HOSTNAME to the container's short ID, and Next.js's
+      # standalone server binds to that literal value if set - which
+      # resolves (via /etc/hosts) to the container's bridge IP, not a
+      # loopback-reachable address. Override it so the server binds all
+      # interfaces, otherwise `wget http://localhost:3000` (used by the
+      # healthcheck below) gets connection refused.
+      HOSTNAME: "0.0.0.0"
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
