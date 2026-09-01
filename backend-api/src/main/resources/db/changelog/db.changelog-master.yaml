@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/V4__add_image_urls.yaml
   - include:
       file: db/changelog/V5__fix_image_urls_type.yaml
+  - include:
+      file: db/changelog/V6__backfill_image_columns.yaml

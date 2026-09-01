@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: V6__backfill_image_columns
+      author: mathiswi
+      comment: >
+        V4/V5 shipped as no-ops (the columns were only ever added by hand on
+        one dev machine, never as real DDL), so any other environment
+        (including production) never got these columns. This applies the
+        migration test-changelog.yaml already had for real, safely, only
+        where it's still missing.
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: listings
+            columnName: image_urls
+      changes:
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: thumbnail_url
+                  type: TEXT
+              - column:
+                  name: image_urls
+                  type: TEXT
+                  defaultValue: '[]'
+                  constraints:
+                    nullable: false
