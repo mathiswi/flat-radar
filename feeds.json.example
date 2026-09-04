@@ -3,7 +3,7 @@
     "id": "barmbek",
     "displayName": "Kleinanzeigen Barmbek",
     "source": "kleinanzeigen",
-    "url": "https://www.kleinanzeigen.de/s-wohnung-mieten/hamburg/barmbek/anzeige:angebote",
+    "url": "https://www.kleinanzeigen.de/s-wohnung-mieten/22297/preis::1300/c203l26487r5+wohnung_mieten.qm_d:55%2C80",
     "district": "Barmbek",
     "enabled": true
   },
@@ -11,7 +11,7 @@
     "id": "eimsbuettel",
     "displayName": "Kleinanzeigen Eimsbuettel",
     "source": "kleinanzeigen",
-    "url": "https://www.kleinanzeigen.de/s-wohnung-mieten/hamburg/eimsbuettel/anzeige:angebote",
+    "url": "https://www.kleinanzeigen.de/s-wohnung-mieten/20259/preis::1300/c203l16480r5+wohnung_mieten.qm_d:55%2C80",
     "district": "Eimsbuettel",
     "enabled": true
   },
