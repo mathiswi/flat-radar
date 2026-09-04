@@ -18,16 +18,23 @@ object SearchPageParser {
      * which does this once the source dispatch layer is in place).
      *
      * Confirmed markup (live Astro page, September 2026):
+     *   - Results list:       ul#srchrslt-adtable   (scope: real results only)
      *   - Card container:     article[data-adid]
      *     - ad id:             attribute "data-adid"
      *     - href (relative):   attribute "data-href"  (e.g. "/s-anzeige/.../3503537335-203-9448")
      *     - title:             h3 a .text()
+     *
+     * Card selection is SCOPED to #srchrslt-adtable so the cross-category
+     * "Anzeigen aus der Umgebung" / recommended blocks (also article[data-adid],
+     * further down the page) are never ingested. Missing container -> no cards
+     * (fail closed: 0 ads is caught by the delisting empty-guard; junk is not).
      */
     fun parse(html: String): List<AdRef> {
         val doc = Jsoup.parse(html)
         val refs = mutableListOf<AdRef>()
 
-        for (card in doc.select(Constants.CARD)) {
+        val results = doc.selectFirst(Constants.RESULTS_CONTAINER) ?: return emptyList()
+        for (card in results.select(Constants.CARD)) {
             val adId = card.attr(Constants.AD_ID_ATTR).takeIf { it.isNotBlank() } ?: continue
             val href = card.attr(Constants.HREF_ATTR).takeIf { it.isNotBlank() } ?: continue
             val title = card.selectFirst(Constants.CARD_TITLE)?.text()?.trim() ?: continue
@@ -64,6 +71,7 @@ object SearchPageParser {
 
     private object Constants {
         const val BASE_URL = "https://www.kleinanzeigen.de"
+        const val RESULTS_CONTAINER = "#srchrslt-adtable"
         const val CARD = "article[data-adid]"
         const val AD_ID_ATTR = "data-adid"
         const val HREF_ATTR = "data-href"
