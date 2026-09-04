@@ -47,11 +47,29 @@ class BackendClient(
         }
     }
 
+    /**
+     * Reports the full set of ad IDs currently visible for [feedId] this run, so the
+     * backend can mark still-alive listings and delist ones that have disappeared. Call
+     * only on a successful run: an aborted/failed feed must not report a partial set (it
+     * would falsely delist the missing ads). An empty [ids] is a no-op on the backend.
+     */
+    suspend fun reportSeen(feedId: String, ids: List<String>): Int {
+        val response = client.post("$apiUrl/api/v1/feeds/$feedId/seen") {
+            contentType(ContentType.Application.Json)
+            setBody(ids)
+        }
+        response.ensureSuccess()
+        return response.body<SeenResult>().delisted
+    }
+
     private suspend fun HttpResponse.ensureSuccess() {
         if (!status.isSuccess()) {
             throw BackendException("backend returned ${status.value}: ${bodyAsText()}")
         }
     }
 }
+
+@kotlinx.serialization.Serializable
+private data class SeenResult(val delisted: Int)
 
 class BackendException(message: String) : RuntimeException(message)

@@ -175,3 +175,24 @@ databaseChangeLog:
       author: mathiswi
       changes:
         # No-op for H2 (already TEXT), but keeps changelogs in sync.
+  - changeSet:
+      id: V7__add_delisting
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V7__add_delisting.yaml. (V6 is a prod-only backfill
+        # of columns this test changelog already created in V4, so it has no mirror.)
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: feed_id
+                  type: TEXT
+              - column:
+                  name: missed_runs
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delisted_at
+                  type: TIMESTAMPTZ
