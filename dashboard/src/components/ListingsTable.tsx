@@ -1,17 +1,6 @@
 "use client";
 
-interface Listing {
-  id: string;
-  title: string;
-  totalRent: number | null;
-  size: number | null;
-  rooms: number | null;
-  location: string;
-  district: string | null;
-  source: string;
-  url: string;
-  firstSeen: number;
-}
+import type { Listing } from "@/lib/types";
 
 export function ListingsTable({ listings }: { listings: Listing[] }) {
   if (listings.length === 0) {
@@ -32,10 +21,14 @@ export function ListingsTable({ listings }: { listings: Listing[] }) {
           </tr>
         </thead>
         <tbody>
-          {listings.map((listing) => (
+          {listings.map((listing) => {
+            const delisted = listing.delistedAt != null;
+            return (
             <tr
               key={listing.id}
-              className="border-b border-zinc-800 last:border-0 hover:bg-zinc-900/50"
+              className={`border-b border-zinc-800 last:border-0 hover:bg-zinc-900/50 ${
+                delisted ? "text-zinc-500" : ""
+              }`}
             >
               <td className="px-4 py-3">
                 <a
@@ -46,8 +39,15 @@ export function ListingsTable({ listings }: { listings: Listing[] }) {
                 >
                   {listing.title}
                 </a>
+                {delisted && (
+                  <span className="ml-2 rounded bg-red-900/80 px-1.5 py-0.5 text-xs font-medium text-red-100">
+                    Entfernt
+                  </span>
+                )}
               </td>
               <td className="px-4 py-3">
+                {/* Cents band-aid: kept for legacy rows still stored in cents (no reprocess).
+                    Harmless for correct values (< 10 000). Remove once a backfill exists. */}
                 {listing.totalRent != null
                   ? `€${listing.totalRent > 10_000 ? listing.totalRent / 100 : listing.totalRent}`
                   : "—"}
@@ -67,7 +67,8 @@ export function ListingsTable({ listings }: { listings: Listing[] }) {
                 </span>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

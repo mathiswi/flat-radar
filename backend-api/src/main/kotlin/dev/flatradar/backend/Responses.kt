@@ -20,3 +20,6 @@ data class StatsResponse(
     val deadLettered: Int,
     val lastScrape: Long?,  // epoch millis; null when no listings have been ingested yet
 )
+
+@Serializable
+data class SeenResponse(val delisted: Int)

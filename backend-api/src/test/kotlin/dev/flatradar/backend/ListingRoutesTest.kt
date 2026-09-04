@@ -27,7 +27,10 @@ import kotlin.test.assertTrue
 class ListingRoutesTest {
 
     private fun freshDataSource(): DataSource {
-        val name = "test${dbCounter.incrementAndGet()}"
+        // Class-unique prefix: H2 in-memory DBs live for the whole JVM (DB_CLOSE_DELAY=-1),
+        // so a bare "test${n}" would collide with another test class's identically-named DB
+        // and race on migrations.
+        val name = "routestest${dbCounter.incrementAndGet()}"
         return JdbcDataSource().apply {
             setURL("jdbc:h2:mem:$name;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1")
             user = "sa"

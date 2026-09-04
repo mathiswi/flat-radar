@@ -29,6 +29,7 @@ object Diagnose {
         val markers = mapOf(
             "#viewad-title" to (doc.selectFirst("#viewad-title") != null),
             "article.aditem" to (doc.selectFirst("article.aditem") != null),
+            "article[data-adid]" to (doc.selectFirst("article[data-adid]") != null),
             "input[name=adId]" to (doc.selectFirst("input[name=adId]") != null),
             "captcha" to (lower.contains("captcha") || lower.contains("verifizieren") || lower.contains("ich bin kein")),
             "robots-meta" to (doc.selectFirst("meta[name=robots]") != null),
@@ -50,7 +51,7 @@ object Diagnose {
                 "BLOCKED - bot protection served a challenge page"
             markers.getValue("#viewad-title") && markers.getValue("input[name=adId]") ->
                 "OK - detail page looks parseable"
-            markers.getValue("article.aditem") ->
+            markers.getValue("article.aditem") || markers.getValue("article[data-adid]") ->
                 "OK - search-results page (call this URL through SearchPageParser instead)"
             length < 2000 ->
                 "UNKNOWN - response is suspiciously short ($length bytes); possibly a redirect or block"

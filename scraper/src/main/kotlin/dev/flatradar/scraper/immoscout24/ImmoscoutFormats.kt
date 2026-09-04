@@ -12,9 +12,17 @@ import kotlinx.datetime.LocalDate
  */
 internal object ImmoscoutFormats {
 
-    /** "930\u00A0€" | "1.190 €" | "2800" | "530 € zzgl. Heiz- und Nebenkosten" -> 930/1190/2800/530. */
-    fun parseEuros(text: String): Int? =
-        text.filter { it.isDigit() }.takeIf { it.isNotEmpty() }?.toIntOrNull()
+    /** "930\u00A0€" | "1.190 €" | "2800" | "530 € zzgl. Heiz- und Nebenkosten" -> 930/1190/2800/530, and "1.113,71 €" -> 1114.
+     *
+     * German formatting: "." groups thousands, "," is the decimal separator. The old
+     * implementation stripped every non-digit and concatenated, so a value carrying cents
+     * ("1.113,71 €") came out as 111371 - 100x too large. We take the leading price token,
+     * drop thousands separators, treat "," as the decimal point, and round to whole euros
+     * (all downstream rent columns are INTEGER euros). */
+    fun parseEuros(text: String): Int? {
+        val token = Regex("""\d[\d.]*(?:,\d+)?""").find(text)?.value ?: return null
+        return token.replace(".", "").replace(",", ".").toDoubleOrNull()?.let { Math.round(it).toInt() }
+    }
 
     /** "63 m²" | "ca. 63 m²" | "63,5 m²" -> 63.0 / 63.0 / 63.5. */
     fun parseSize(text: String): Double? =

@@ -32,5 +32,12 @@ object ListingsTable : Table("listings") {
     val firstSeen = timestampWithTimeZone("first_seen")
     val lastSeen = timestampWithTimeZone("last_seen")
 
+    // Delisting detection (V7). feedId is backfilled by the "seen" reconcile, missedRuns
+    // counts consecutive successful runs of that feed the listing was absent from, and
+    // delistedAt is set once missedRuns crosses the threshold (cleared if it reappears).
+    val feedId = text("feed_id").nullable()
+    val missedRuns = integer("missed_runs").default(0)
+    val delistedAt = timestampWithTimeZone("delisted_at").nullable()
+
     override val primaryKey = PrimaryKey(id)
 }

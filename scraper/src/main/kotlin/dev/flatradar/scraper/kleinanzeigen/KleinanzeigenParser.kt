@@ -21,6 +21,10 @@ object KleinanzeigenParser : SourceParser {
                 SwapDetector.isSwapByTitle(ref.title) || SwapDetector.isSwapBySlug(ref.url)
             }
 
+    /** Follow the first few result pages (see [SearchPageParser.nextPageUrls] / PAGE_CAP). */
+    override fun nextSearchPageUrls(firstPageUrl: String, firstPageResponse: String): List<String> =
+        SearchPageParser.nextPageUrls(firstPageResponse)
+
     override suspend fun parseDetail(
         html: String,
         url: String,

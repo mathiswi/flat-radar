@@ -1,6 +1,4 @@
 import { StatsBar } from "@/components/StatsBar";
-import { ListingsTable } from "@/components/ListingsTable";
-import { ListingsGrid } from "@/components/ListingsGrid";
 import { ViewToggle } from "@/components/ViewToggle";
 import { AutoRefresh } from "@/components/AutoRefresh";
 
@@ -35,10 +33,7 @@ export default async function DashboardPage() {
       <h1 className="mb-8 text-3xl font-bold">Flat Radar</h1>
       <StatsBar stats={stats} />
       <AutoRefresh />
-      <ViewToggle
-        grid={<ListingsGrid listings={listings} />}
-        table={<ListingsTable listings={listings} />}
-      />
+      <ViewToggle listings={listings} />
     </main>
   );
 }
