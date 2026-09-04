@@ -14,6 +14,7 @@ services:
       retries: 10
 
   backend-api:
+    image: ghcr.io/mathiswi/flat-radar-backend-api:${TAG:-latest}
     build:
       context: .
       dockerfile: backend-api/Dockerfile
@@ -35,6 +36,7 @@ services:
       retries: 5
 
   dashboard:
+    image: ghcr.io/mathiswi/flat-radar-dashboard:${TAG:-latest}
     build:
       context: .
       dockerfile: dashboard/Dockerfile
@@ -63,6 +65,7 @@ services:
       retries: 5
 
   scraper:
+    image: ghcr.io/mathiswi/flat-radar-scraper:${TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,0 +1,10 @@
+[Unit]
+Description=flat-radar pull-based deploy (git pull + docker compose pull + up)
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/flat-radar/deploy/deploy.sh
+# git pull + image pulls can take a while on a cold layer.
+TimeoutStartSec=600
