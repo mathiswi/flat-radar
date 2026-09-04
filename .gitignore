@@ -4,6 +4,7 @@ build/
 .kotlin/
 dashboard/node_modules/
 dashboard/.next/
+dashboard/*.tsbuildinfo
 
 # IDE
 .idea/

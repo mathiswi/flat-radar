@@ -28,5 +28,8 @@ data class ApartmentAd(
     val distanceMeters: Int? = null,
     val thumbnailUrl: String? = null,
     val imageUrls: List<String> = emptyList(),
-    val timestamp: Long
+    val timestamp: Long,
+    /** Epoch millis when the listing was detected as removed from its feed, else null.
+     *  Set by the backend's delisting reconcile; the scraper never populates it. */
+    val delistedAt: Long? = null,
 )

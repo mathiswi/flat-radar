@@ -1,20 +1,7 @@
 "use client";
 
 import Image from "next/image";
-
-interface Listing {
-  id: string;
-  title: string;
-  totalRent: number | null;
-  size: number | null;
-  rooms: number | null;
-  location: string;
-  district: string | null;
-  source: string;
-  url: string;
-  thumbnailUrl: string | null;
-  imageUrls: string[];
-}
+import type { Listing } from "@/lib/types";
 
 export function ListingsGrid({ listings }: { listings: Listing[] }) {
   if (listings.length === 0) {
@@ -33,13 +20,16 @@ export function ListingsGrid({ listings }: { listings: Listing[] }) {
 function ListingCard({ listing }: { listing: Listing }) {
   const thumbnailUrl = listing.thumbnailUrl ?? listing.imageUrls?.[0] ?? null;
   const hasImage = !!thumbnailUrl;
+  const delisted = listing.delistedAt != null;
 
   return (
     <a
       href={listing.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 transition-colors hover:border-zinc-700"
+      className={`group overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 transition-colors hover:border-zinc-700 ${
+        delisted ? "opacity-50 grayscale" : ""
+      }`}
     >
       <div className="relative aspect-[4/3] bg-zinc-800">
         {hasImage ? (
@@ -70,6 +60,11 @@ function ListingCard({ listing }: { listing: Listing }) {
         <span className="absolute right-2 top-2 rounded bg-zinc-900/80 px-2 py-0.5 text-xs text-zinc-300">
           {listing.source}
         </span>
+        {delisted && (
+          <span className="absolute left-2 top-2 rounded bg-red-900/80 px-2 py-0.5 text-xs font-medium text-red-100">
+            Entfernt
+          </span>
+        )}
       </div>
       <div className="p-3">
         <h3 className="truncate text-sm font-medium text-zinc-100 group-hover:text-blue-400">
@@ -77,6 +72,9 @@ function ListingCard({ listing }: { listing: Listing }) {
         </h3>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-lg font-semibold text-zinc-100">
+            {/* Cents band-aid: kept because the scraper's parseEuros fix only corrects
+                NEW rows - legacy rows in the DB are still stored in cents (no reprocess).
+                Harmless for correct values (< 10 000). Remove once a backfill exists. */}
             {listing.totalRent != null
               ? `€${listing.totalRent > 10_000 ? listing.totalRent / 100 : listing.totalRent}`
               : "—"}

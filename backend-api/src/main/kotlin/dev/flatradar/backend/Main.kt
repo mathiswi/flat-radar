@@ -62,10 +62,15 @@ fun Application.module(
 
     startOutboxWorker(repository)
 
+    // Consecutive successful-run misses before a listing is marked delisted (~10-20 min
+    // to delist at a 5-10 min scrape cadence). Tunable via env.
+    val delistingThreshold = System.getenv("DELISTING_THRESHOLD")?.toIntOrNull() ?: 2
+
     routing {
         healthRoutes(dataSource)
         listingRoutes(repository)
         statsRoutes(repository)
+        feedRoutes(repository, delistingThreshold)
     }
 }
 

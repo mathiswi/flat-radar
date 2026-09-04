@@ -102,6 +102,66 @@ class ListingRepositoryTest {
         assertTrue(repository.fetchUnsentOutbox(limit = 10, maxAttempts = 5).isEmpty())
     }
 
+    // --- Delisting reconcile (reconcileSeen) ---
+
+    private fun ListingRepository.delistedAtOf(id: String): Long? =
+        findAll().first { it.id == id }.delistedAt
+
+    @Test
+    fun reconcile_marks_a_listing_delisted_after_threshold_consecutive_misses() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("keep"))
+        repository.upsert(sampleAd("gone"))
+
+        // First run claims both for the feed; nothing delisted yet.
+        assertEquals(0, repository.reconcileSeen("feed1", listOf("keep", "gone"), threshold = 2))
+
+        // Miss #1: below threshold, still listed.
+        assertEquals(0, repository.reconcileSeen("feed1", listOf("keep"), threshold = 2))
+        assertEquals(null, repository.delistedAtOf("gone"))
+
+        // Miss #2: reaches threshold -> delisted (and reported as one newly delisted).
+        assertEquals(1, repository.reconcileSeen("feed1", listOf("keep"), threshold = 2))
+        assertTrue(repository.delistedAtOf("gone") != null)
+        assertEquals(null, repository.delistedAtOf("keep"))
+    }
+
+    @Test
+    fun reconcile_clears_delisting_when_a_listing_reappears() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("flap"))
+        repository.reconcileSeen("feed1", listOf("flap"), threshold = 1) // claim ownership
+        repository.reconcileSeen("feed1", listOf("someone-else"), threshold = 1) // flap absent -> delisted
+        assertTrue(repository.delistedAtOf("flap") != null, "should be delisted after a miss at threshold 1")
+
+        repository.reconcileSeen("feed1", listOf("flap"), threshold = 1)
+        assertEquals(null, repository.delistedAtOf("flap"), "reappearing clears delisting")
+    }
+
+    @Test
+    fun reconcile_ignores_an_empty_seen_set() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("safe"))
+        repository.reconcileSeen("feed1", listOf("safe"), threshold = 1) // claim
+
+        // An empty report is inconclusive (soft-block / genuinely-empty page) and must
+        // not advance miss counters or delist anything.
+        assertEquals(0, repository.reconcileSeen("feed1", emptyList(), threshold = 1))
+        assertEquals(null, repository.delistedAtOf("safe"))
+    }
+
+    @Test
+    fun reconcile_only_touches_its_own_feeds_listings() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("owned-by-1"))
+        repository.reconcileSeen("feed1", listOf("owned-by-1"), threshold = 1) // feed1 claims it
+
+        // feed2 reporting a different id must not delist feed1's listing, even past threshold.
+        repository.reconcileSeen("feed2", listOf("owned-by-2"), threshold = 1)
+        repository.reconcileSeen("feed2", listOf("owned-by-2"), threshold = 1)
+        assertEquals(null, repository.delistedAtOf("owned-by-1"))
+    }
+
     private companion object {
         val dbCounter = AtomicInteger(0)
     }

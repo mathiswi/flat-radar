@@ -8,11 +8,21 @@ import kotlin.test.assertNull
 class ImmoscoutFormatsTest {
 
     @Test
-    fun parseEuros_strips_non_digits() {
+    fun parseEuros_parses_whole_euro_values() {
         assertEquals(930, ImmoscoutFormats.parseEuros("930\u00A0€"))
         assertEquals(1190, ImmoscoutFormats.parseEuros("1.190 €"))
         assertEquals(2800, ImmoscoutFormats.parseEuros("2800"))
         assertEquals(530, ImmoscoutFormats.parseEuros("530 € zzgl. Heiz- und Nebenkosten"))
+    }
+
+    @Test
+    fun parseEuros_handles_decimal_cents() {
+        // Regression: a cents-carrying value must not be read as euros+cents concatenated
+        // (the old "strip non-digits" impl turned "1.113,71 €" into 111371).
+        assertEquals(1114, ImmoscoutFormats.parseEuros("1.113,71 €"))
+        assertEquals(1114, ImmoscoutFormats.parseEuros("1113,71 €"))
+        assertEquals(931, ImmoscoutFormats.parseEuros("930,50 €"))
+        assertEquals(1250, ImmoscoutFormats.parseEuros("1.250,00 €"))
     }
 
     @Test

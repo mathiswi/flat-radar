@@ -9,10 +9,13 @@ import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.max
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.insert
@@ -92,6 +95,50 @@ class ListingRepository(dataSource: DataSource) {
         }
 
         if (exists) InsertResult.EXISTING else InsertResult.NEW
+    }
+
+    /**
+     * Reconciles one feed's currently-visible ad IDs against what's stored, the only
+     * "still alive" signal in the system (the scraper never re-ingests known IDs, so
+     * [upsert]'s last_seen bump never fires in the normal flow).
+     *
+     * For [seenIds]: bump last_seen, reset the miss counter, clear any delisting, and
+     * claim ownership ([ListingsTable.feedId]) if unowned. For this feed's *other*
+     * listings that were absent this run: increment the miss counter and mark
+     * [ListingsTable.delistedAt] once it reaches [threshold]. A listing seen in two
+     * feeds is owned by whichever reported it first; the other feed won't touch it.
+     *
+     * Guard: an empty [seenIds] is treated as inconclusive (a genuinely-empty or
+     * soft-blocked search page) and advances nothing - callers should only invoke this
+     * on a successful run. Returns the number of listings newly delisted by this call.
+     */
+    fun reconcileSeen(feedId: String, seenIds: List<String>, threshold: Int): Int = transaction(db) {
+        if (seenIds.isEmpty()) return@transaction 0
+        val now = OffsetDateTime.now(ZoneOffset.UTC)
+
+        ListingsTable.update({ ListingsTable.id inList seenIds }) {
+            it[lastSeen] = now
+            it[missedRuns] = 0
+            it[delistedAt] = null
+        }
+        ListingsTable.update({ (ListingsTable.id inList seenIds) and ListingsTable.feedId.isNull() }) {
+            it[ListingsTable.feedId] = feedId
+        }
+
+        ListingsTable.update({
+            (ListingsTable.feedId eq feedId) and
+                (ListingsTable.id notInList seenIds) and
+                ListingsTable.delistedAt.isNull()
+        }) {
+            with(SqlExpressionBuilder) { it[missedRuns] = missedRuns + 1 }
+        }
+        ListingsTable.update({
+            (ListingsTable.feedId eq feedId) and
+                (ListingsTable.missedRuns greaterEq threshold) and
+                ListingsTable.delistedAt.isNull()
+        }) {
+            it[delistedAt] = now
+        }
     }
 
     fun findAll(): List<ApartmentAd> = transaction(db) {
@@ -182,7 +229,8 @@ class ListingRepository(dataSource: DataSource) {
         distanceMeters = row[ListingsTable.distanceMeters],
         thumbnailUrl = row[ListingsTable.thumbnailUrl],
         imageUrls = imageUrlsJson.decodeFromString(ListSerializer(serializer<String>()), row[ListingsTable.imageUrls]),
-        timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli()
+        timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli(),
+        delistedAt = row[ListingsTable.delistedAt]?.toInstant()?.toEpochMilli(),
     )
 
     private companion object {

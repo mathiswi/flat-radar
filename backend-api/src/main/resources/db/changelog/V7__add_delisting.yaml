@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: V7__add_delisting
+      author: mathiswi
+      comment: >
+        Delisting detection. feed_id records which feed a listing was last seen
+        in (backfilled by the /feeds/{id}/seen reconcile, so no ingest change is
+        needed); missed_runs counts consecutive successful feed runs the listing
+        was absent from; delisted_at is set once that count crosses the
+        threshold and cleared if the listing reappears.
+      changes:
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: feed_id
+                  type: TEXT
+              - column:
+                  name: missed_runs
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delisted_at
+                  type: TIMESTAMP WITH TIME ZONE

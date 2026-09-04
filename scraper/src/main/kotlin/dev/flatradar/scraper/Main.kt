@@ -99,6 +99,16 @@ private suspend fun processFeed(
         val refs = fetchAllSearchPages(parser, searchUrl, firstPage, httpClient, detailFetchLimiter)
         println("[${feed.id}] ${refs.size} ad(s) on search page")
 
+        // Report the full visible set for delisting reconcile. Inside the try, after a
+        // successful search+pagination parse, so a failed run never reports a partial
+        // set (which would falsely delist the ads it couldn't fetch).
+        try {
+            val delisted = backendClient.reportSeen(feed.id, refs.map { it.adId })
+            if (delisted > 0) println("[${feed.id}] marked $delisted listing(s) delisted")
+        } catch (e: Exception) {
+            System.err.println("[${feed.id}] seen-report failed: ${e.message}")
+        }
+
         val existingIds = backendClient.preFilter(refs.map { it.adId })
         val newRefs = refs.filter { it.adId !in existingIds }
         println("[${feed.id}] ${newRefs.size} new ad(s) after pre-filter (${existingIds.size} already exist)")
