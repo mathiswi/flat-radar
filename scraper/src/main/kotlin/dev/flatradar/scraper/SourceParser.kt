@@ -8,7 +8,6 @@ import dev.flatradar.shared.ApartmentAd
  * [SourceParsers.all], keyed by [FeedConfig.source].
  *
  * `parseSearch` is non-suspend: a pure transformation (jsoup or JSON) with no I/O.
- * `parseDetail` is suspend: it may invoke the [RentFallback] LLM call.
  */
 interface SourceParser {
 
@@ -44,7 +43,6 @@ interface SourceParser {
         url: String,
         district: String,
         timestamp: Long,
-        rentFallback: RentFallback? = null,
         ref: AdRef? = null,
     ): ApartmentAd?
 }

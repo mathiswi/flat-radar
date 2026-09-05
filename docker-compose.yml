@@ -74,7 +74,6 @@ services:
         condition: service_healthy
     environment:
       BACKEND_URL: http://backend-api:8080
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
       - ./feeds.json:/app/feeds.json:ro
     restart: "no"

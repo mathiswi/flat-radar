@@ -47,7 +47,6 @@ suspend fun main(args: Array<String>) {
         }
 
         val feeds = JsonFileFeeds()
-        val rentFallback: RentFallback? = RentExtractor.fromEnv()
         val backendClient = BackendClient(httpClient)
         val detailFetchLimiter = Semaphore(DETAIL_FETCH_PERMITS)
 
@@ -62,13 +61,13 @@ suspend fun main(args: Array<String>) {
             exitProcess(1)
         }
 
-        println("[main] running ${configs.size} feed(s)${if (rentFallback != null) " with LLM fallback" else ""}")
+        println("[main] running ${configs.size} feed(s)")
 
         val timestamp = Clock.System.now().toEpochMilliseconds()
 
         val results = coroutineScope {
             configs.map { feed ->
-                async { processFeed(feed, rentFallback, timestamp, backendClient, httpClient, detailFetchLimiter) }
+                async { processFeed(feed, timestamp, backendClient, httpClient, detailFetchLimiter) }
             }.awaitAll()
         }
 
@@ -81,7 +80,6 @@ suspend fun main(args: Array<String>) {
 
 private suspend fun processFeed(
     feed: FeedConfig,
-    rentFallback: RentFallback?,
     timestamp: Long,
     backendClient: BackendClient,
     httpClient: HttpClient,
@@ -121,7 +119,7 @@ private suspend fun processFeed(
                             delay(Random.nextLong(DETAIL_FETCH_DELAY_RANGE.first, DETAIL_FETCH_DELAY_RANGE.last))
                             fetch(httpClient, ref.url)
                         }
-                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, rentFallback, ref)
+                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, ref)
                         if (ad == null) {
                             println("[${feed.id}] skip (null): ${ref.adId} ${ref.title}")
                         } else {
