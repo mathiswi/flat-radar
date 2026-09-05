@@ -1,7 +1,6 @@
 package dev.flatradar.scraper.immoscout24
 
 import dev.flatradar.scraper.AdRef
-import dev.flatradar.scraper.RentFallback
 import dev.flatradar.scraper.SourceParser
 import dev.flatradar.scraper.SwapDetector
 import dev.flatradar.shared.ApartmentAd
@@ -41,11 +40,8 @@ object ImmoscoutParser : SourceParser {
         url: String,
         district: String,
         timestamp: Long,
-        rentFallback: RentFallback?,
         ref: AdRef?,
     ): ApartmentAd? =
-        // Costs come structured from the mobile API for this source, so the LLM
-        // fallback (used by kleinanzeigen for free-text-only listings) is unused here.
         // lat/lon/distanceMeters come from the search-list ref, not the expose response
         // itself (see SearchListParser's KDoc), so they're merged in here.
         ExposeParser.parse(html, url, district, timestamp)?.let { ad ->

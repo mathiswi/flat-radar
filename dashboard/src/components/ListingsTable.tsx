@@ -46,11 +46,7 @@ export function ListingsTable({ listings }: { listings: Listing[] }) {
                 )}
               </td>
               <td className="px-4 py-3">
-                {/* Cents band-aid: kept for legacy rows still stored in cents (no reprocess).
-                    Harmless for correct values (< 10 000). Remove once a backfill exists. */}
-                {listing.totalRent != null
-                  ? `€${listing.totalRent > 10_000 ? listing.totalRent / 100 : listing.totalRent}`
-                  : "—"}
+                {listing.totalRent != null ? `€${listing.totalRent}` : "—"}
               </td>
               <td className="px-4 py-3">
                 {listing.size != null ? `${listing.size} m²` : "—"}

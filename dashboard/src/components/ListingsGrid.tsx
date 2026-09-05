@@ -72,12 +72,7 @@ function ListingCard({ listing }: { listing: Listing }) {
         </h3>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-lg font-semibold text-zinc-100">
-            {/* Cents band-aid: kept because the scraper's parseEuros fix only corrects
-                NEW rows - legacy rows in the DB are still stored in cents (no reprocess).
-                Harmless for correct values (< 10 000). Remove once a backfill exists. */}
-            {listing.totalRent != null
-              ? `€${listing.totalRent > 10_000 ? listing.totalRent / 100 : listing.totalRent}`
-              : "—"}
+            {listing.totalRent != null ? `€${listing.totalRent}` : "—"}
           </span>
           <span className="text-sm text-zinc-400">
             {listing.size != null ? `${listing.size} m²` : ""}

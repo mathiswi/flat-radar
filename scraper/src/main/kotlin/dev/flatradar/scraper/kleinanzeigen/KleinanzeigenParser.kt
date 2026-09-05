@@ -1,7 +1,6 @@
 package dev.flatradar.scraper.kleinanzeigen
 
 import dev.flatradar.scraper.AdRef
-import dev.flatradar.scraper.RentFallback
 import dev.flatradar.scraper.SourceParser
 import dev.flatradar.shared.ApartmentAd
 
@@ -30,9 +29,8 @@ object KleinanzeigenParser : SourceParser {
         url: String,
         district: String,
         timestamp: Long,
-        rentFallback: RentFallback?,
         ref: AdRef?,
     ): ApartmentAd? =
         // No geo data on this source's search/detail pages (see AdRef.lat KDoc), so ref is unused.
-        DetailPageParser.parse(html, url, district, timestamp, rentFallback)
+        DetailPageParser.parse(html, url, district, timestamp)
 }
