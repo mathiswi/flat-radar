@@ -1,5 +1,6 @@
 package dev.flatradar.scraper
 
+import dev.flatradar.shared.FeedConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -46,8 +47,8 @@ suspend fun main(args: Array<String>) {
             return
         }
 
-        val feeds = JsonFileFeeds()
         val backendClient = BackendClient(httpClient)
+        val feeds = BackendFeeds(backendClient)
         val detailFetchLimiter = Semaphore(DETAIL_FETCH_PERMITS)
 
         val configs = try {

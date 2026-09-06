@@ -13,3 +13,7 @@ databaseChangeLog:
       file: db/changelog/V6__backfill_image_columns.yaml
   - include:
       file: db/changelog/V7__add_delisting.yaml
+  - include:
+      file: db/changelog/V8__add_feeds.yaml
+  - include:
+      file: db/changelog/V9__seed_feeds.yaml

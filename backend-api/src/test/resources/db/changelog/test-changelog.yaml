@@ -196,3 +196,44 @@ databaseChangeLog:
               - column:
                   name: delisted_at
                   type: TIMESTAMPTZ
+  - changeSet:
+      id: V8__add_feeds
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V8__add_feeds.yaml, except `id` is VARCHAR(512)
+        # instead of TEXT (H2 can't primary-key a CLOB column - see V1 note).
+        - createTable:
+            tableName: feeds
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(512)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: district
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false

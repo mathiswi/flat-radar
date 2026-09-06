@@ -21,7 +21,3 @@ dashboard/*.tsbuildinfo
 
 # Keep the example tracked so others know what's expected
 !.env.example
-
-# Local feed config (per-user / per-deploy overrides)
-feeds.json
-!feeds.json.example

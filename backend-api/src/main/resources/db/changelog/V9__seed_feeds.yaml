@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: V9__seed_feeds
+      author: mathiswi
+      comment: >
+        One-time seed of the initial feeds so a fresh deploy scrapes immediately
+        without a hand-edited feeds.json. These are the feeds config's version-
+        controlled starting point, not enforced state: Liquibase runs this
+        changeset once, so edits/deletes made afterwards via the dashboard
+        (POST/PUT/DELETE /api/v1/feeds) are never overwritten. Category-locked
+        (c203) Kleinanzeigen URLs - see the write validation in FeedCrudRoutes.
+      changes:
+        - insert:
+            tableName: feeds
+            columns:
+              - column: { name: id, value: "barmbek" }
+              - column: { name: display_name, value: "Kleinanzeigen Barmbek" }
+              - column: { name: url, value: "https://www.kleinanzeigen.de/s-wohnung-mieten/22297/preis::1300/c203l26487r5+wohnung_mieten.qm_d:55%2C80" }
+              - column: { name: district, value: "Barmbek" }
+              - column: { name: source, value: "kleinanzeigen" }
+              - column: { name: enabled, valueBoolean: true }
+        - insert:
+            tableName: feeds
+            columns:
+              - column: { name: id, value: "eimsbuettel" }
+              - column: { name: display_name, value: "Kleinanzeigen Eimsbuettel" }
+              - column: { name: url, value: "https://www.kleinanzeigen.de/s-wohnung-mieten/20259/preis::1300/c203l16480r5+wohnung_mieten.qm_d:55%2C80" }
+              - column: { name: district, value: "Eimsbuettel" }
+              - column: { name: source, value: "kleinanzeigen" }
+              - column: { name: enabled, valueBoolean: true }
+        - insert:
+            tableName: feeds
+            columns:
+              - column: { name: id, value: "barmbek-is24" }
+              - column: { name: display_name, value: "ImmoScout24 Barmbek-Nord (radius)" }
+              - column: { name: url, value: "https://www.immobilienscout24.de/Suche/radius/wohnung-mieten?centerofsearchaddress=Hamburg%3B%3B%3B%3B%3BBarmbek-Nord%3B&numberofrooms=2.0-3.0&price=-1500.0&livingspace=55.0-80.0&pricetype=calculatedtotalrent&geocoordinates=53.59425%3B10.04675%3B2.0&enteredFrom=result_list" }
+              - column: { name: district, value: "Barmbek-Nord" }
+              - column: { name: source, value: "immoscout24" }
+              - column: { name: enabled, valueBoolean: true }

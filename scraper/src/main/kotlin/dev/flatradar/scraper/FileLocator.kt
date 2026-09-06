@@ -7,9 +7,8 @@ import java.io.File
  * directory looking for a file named [fileName]. Returns the absolute path of
  * the first hit, or `null` if none is found.
  *
- * Single helper used by both [Env] (for `.env`) and [JsonFileFeeds] (for
- * `feeds.json`) so the lookup behaves the same no matter which subproject Gradle
- * sets as the cwd when running `:scraper:run`.
+ * Used by [Env] to locate `.env` no matter which subproject Gradle sets as the
+ * cwd when running `:scraper:run`.
  */
 internal fun findUpward(fileName: String, maxDepth: Int = 4): String? {
     var dir: File? = File(System.getProperty("user.dir"))

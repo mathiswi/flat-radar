@@ -1,3 +1,12 @@
+export interface Feed {
+  id: string;
+  displayName: string;
+  url: string;
+  district: string;
+  source: string;
+  enabled: boolean;
+}
+
 export interface Listing {
   id: string;
   title: string;

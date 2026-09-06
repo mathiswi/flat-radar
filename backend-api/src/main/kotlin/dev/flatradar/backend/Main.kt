@@ -36,7 +36,10 @@ fun Application.module(
     val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     val repository = ListingRepository(dataSource)
+    val feedRepository = FeedRepository(dataSource)
 
+    // Feeds are DB-owned: created by migration V8, seeded once by V9, edited
+    // thereafter via the dashboard (feedCrudRoutes). No feeds.json anywhere.
     runMigrations(dataSource, changelogPath)
 
     install(StatusPages) {
@@ -71,6 +74,7 @@ fun Application.module(
         listingRoutes(repository)
         statsRoutes(repository)
         feedRoutes(repository, delistingThreshold)
+        feedCrudRoutes(feedRepository)
     }
 }
 
