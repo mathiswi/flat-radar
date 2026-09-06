@@ -49,38 +49,41 @@ Build the Docker image (multi-stage, JRE-only runtime):
 docker build -t flat-radar-scraper .
 ```
 
-Run one-shot, mounting config from the host:
+Run one-shot (needs `BACKEND_URL`, from which it fetches its feeds):
 
 ```sh
 docker run --rm \
   --env-file /opt/flat-radar/.env \
-  -v /opt/flat-radar/feeds.json:/app/feeds.json:ro \
   flat-radar-scraper
 ```
 
 Schedule with host cron (every 15 min):
 
 ```cron
-*/15 * * * * root docker run --rm --env-file /opt/flat-radar/.env -v /opt/flat-radar/feeds.json:/app/feeds.json:ro flat-radar-scraper >> /var/log/flat-radar.log 2>&1
+*/15 * * * * root docker run --rm --env-file /opt/flat-radar/.env flat-radar-scraper >> /var/log/flat-radar.log 2>&1
 ```
 
 ## Feeds
 
-Feeds live in `feeds.json` at the repo root (gitignored, see `feeds.json.example`). Each entry is one polling target:
+Feeds are **DB-owned**, not a file. They live in the `feeds` table, are served to
+the scraper over `GET /api/v1/feeds`, and are edited from the dashboard at
+`/admin/feeds`. A fresh database is seeded with the initial feeds by migration
+`V9__seed_feeds.yaml`; changes made afterwards in the dashboard are never
+overwritten (V9 runs once).
 
-```json
-[
-  { "id": "barmbek", "displayName": "Barmbek", "source": "kleinanzeigen", "url": "https://...", "district": "Barmbek", "enabled": true },
-  { "id": "barmbek-is24", "displayName": "Barmbek-Nord (ImmoScout24)", "source": "immoscout24", "url": "https://...", "district": "Barmbek-Nord", "enabled": true }
-]
-```
+Each feed has `id, displayName, source, url, district, enabled`. On write the
+backend validates the URL (`FeedCrudRoutes`): Kleinanzeigen searches **must** be
+category-locked (contain `c203`), e.g.
+`.../s-wohnung-mieten/22297/preis::1300/c203l26487r5+wohnung_mieten.qm_d:55%2C80` —
+a loose search returns every category and was the source of the junk-listing incident.
 
-- Add a district: add an entry, zero code change.
-- Add a source: implement `SourceParser`, register one line in `SourceParsers.all`.
+- Add a district: add a feed in the dashboard, zero code change.
+- Add a source: implement `SourceParser`, register one line in `SourceParsers.all`,
+  then allow it in `KNOWN_SOURCES` (`FeedCrudRoutes.kt`).
 
 ## Architecture
 
-Each listing source ships a `SourceParser` registered in `SourceParsers.all: Map<String, SourceParser>`. `JsonFileFeeds` loads `feeds.json`; the runner looks up `SourceParsers.get(feed.source)` and logs + skips unknown sources.
+Each listing source ships a `SourceParser` registered in `SourceParsers.all: Map<String, SourceParser>`. `BackendFeeds` fetches the feed config from the backend (`GET /api/v1/feeds`); the runner looks up `SourceParsers.get(feed.source)` and logs + skips unknown sources.
 
 **Two-phase scrape:** parse search page into lightweight `AdRef`s -> filter swap ads (`SwapDetector`) -> pre-filter ids against backend via `POST /api/v1/listings/ids` -> fetch and parse detail pages only for new ads.
 

@@ -44,7 +44,7 @@ The scraper uses a two-phase approach to minimize unnecessary HTTP requests:
 
 ```mermaid
 flowchart TD
-    A[Load feeds.json] --> B[For each enabled feed]
+    A[Load feeds from backend<br/>GET /api/v1/feeds] --> B[For each enabled feed]
     B --> C[Fetch search page HTML]
     C --> D[Parse search page]
     D --> E[Extract AdRefs<br/>id, url, title]

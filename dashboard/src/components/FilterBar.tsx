@@ -24,8 +24,8 @@ export function FilterBar({
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
       <Field label="District">
-        {/* District options are derived from the loaded listings for now;
-            TODO: source these from the feeds config once it exists. */}
+        {/* Options come from the configured feeds (see ViewToggle), unioned with
+            districts present in the listings. */}
         <select
           value={filters.district}
           onChange={(e) => set({ district: e.target.value })}

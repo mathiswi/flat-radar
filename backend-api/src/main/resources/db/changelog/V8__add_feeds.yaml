@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: V8__add_feeds
+      author: mathiswi
+      comment: >
+        Configured search feeds, DB-owned. Replaces the old VPS-local feeds.json:
+        edited from the dashboard, served to the scraper over GET /feeds. Seeded
+        with the initial feeds by V9 (this table is created empty).
+      changes:
+        - createTable:
+            tableName: feeds
+            columns:
+              - column:
+                  name: id
+                  type: TEXT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: district
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false

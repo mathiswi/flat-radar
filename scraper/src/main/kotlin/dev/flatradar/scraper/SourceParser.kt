@@ -1,6 +1,7 @@
 package dev.flatradar.scraper
 
 import dev.flatradar.shared.ApartmentAd
+import dev.flatradar.shared.FeedConfig
 
 /**
  * Parses search-results and detail pages for one listing source (e.g.
@@ -12,7 +13,7 @@ import dev.flatradar.shared.ApartmentAd
 interface SourceParser {
 
     /**
-     * Translates [feedUrl] (the URL configured in `feeds.json`) into the URL that
+     * Translates [feedUrl] (the URL from the feed's [FeedConfig]) into the URL that
      * should actually be fetched for the first search-results page. Identity for
      * sources where the feed URL is already fetchable as-is (e.g. kleinanzeigen);
      * immoscout24 overrides this to translate a web search URL into a mobile-API

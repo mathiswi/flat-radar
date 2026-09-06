@@ -12,16 +12,26 @@ type View = "grid" | "table";
 
 const PAGE_SIZE = 24;
 
-export function ViewToggle({ listings }: { listings: Listing[] }) {
+export function ViewToggle({
+  listings,
+  feedDistricts = [],
+}: {
+  listings: Listing[];
+  feedDistricts?: string[];
+}) {
   const [view, setView] = useState<View>("grid");
   const [hideDelisted, setHideDelisted] = useState(false);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [page, setPage] = useState(1);
 
-  // District options come from the data present (sorted, de-duped).
-  // TODO: source these from the feeds config once that exists.
+  // District options come from the configured feeds (source of truth), unioned
+  // with any districts present in the listings so legacy/delisted rows stay
+  // filterable. Falls back to listing-derived districts if no feeds are passed.
   const districts = Array.from(
-    new Set(listings.map((l) => l.district).filter((d): d is string => !!d)),
+    new Set([
+      ...feedDistricts,
+      ...listings.map((l) => l.district).filter((d): d is string => !!d),
+    ]),
   ).sort();
 
   const delistedCount = listings.filter((l) => l.delistedAt != null).length;

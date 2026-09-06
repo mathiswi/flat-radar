@@ -1,8 +1,10 @@
 package dev.flatradar.scraper
 
 import dev.flatradar.shared.ApartmentAd
+import dev.flatradar.shared.FeedConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -17,6 +19,13 @@ class BackendClient(
     baseUrl: String = Env.get("BACKEND_URL") ?: "http://localhost:8080",
 ) {
     private val apiUrl = baseUrl.trimEnd('/')
+
+    /** All configured feeds. The caller filters to [FeedConfig.enabled]. */
+    suspend fun getFeeds(): List<FeedConfig> {
+        val response = client.get("$apiUrl/api/v1/feeds")
+        response.ensureSuccess()
+        return response.body()
+    }
 
     suspend fun preFilter(ids: List<String>): Set<String> {
         if (ids.isEmpty()) return emptySet()
