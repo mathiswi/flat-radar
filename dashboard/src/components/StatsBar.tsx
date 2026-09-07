@@ -33,7 +33,7 @@ export function StatsBar({ stats }: { stats: StatsData }) {
       )}
 
       {stats.deadLettered > 0 && (
-        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-signal-soft px-2.5 py-0.5 text-signal">
+        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-2.5 py-0.5 text-danger">
           <span className="tnum font-medium">{stats.deadLettered}</span> notification
           {stats.deadLettered === 1 ? "" : "s"} failed
         </span>

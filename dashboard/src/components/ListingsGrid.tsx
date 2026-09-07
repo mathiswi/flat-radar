@@ -17,7 +17,7 @@ export function ListingsGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map((listing) => (
         <ListingCard key={listing.id} listing={listing} onSelect={onSelect} />
       ))}
@@ -35,13 +35,13 @@ function ListingCard({
   const delisted = listing.delistedAt != null;
   const fresh = !delisted && isNew(listing.timestamp);
 
-  // Lead image + up to three thumbnails, de-duped, thumbnail first.
-  const gallery: string[] = [];
+  // One hero photo per card keeps every card the same shape; the rest of the
+  // gallery lives in the detail modal. A count badge hints at how many there are.
+  const images: string[] = [];
   for (const u of [listing.thumbnailUrl, ...(listing.imageUrls ?? [])]) {
-    if (u && !gallery.includes(u)) gallery.push(u);
+    if (u && !images.includes(u)) images.push(u);
   }
-  const [lead, ...rest] = gallery;
-  const thumbs = rest.slice(0, 3);
+  const lead = images[0];
 
   const size = listing.size != null ? `${listing.size} m²` : "";
   const rooms = listing.rooms != null ? `${listing.rooms} Zi.` : "";
@@ -50,9 +50,9 @@ function ListingCard({
     <button
       type="button"
       onClick={() => onSelect(listing)}
-      className={`group block w-full overflow-hidden rounded-xl border bg-surface text-left transition-colors focus:outline-none focus-visible:border-signal ${
-        fresh ? "border-signal/40 hover:border-signal/70" : "border-border hover:border-muted"
-      } ${delisted ? "opacity-55" : ""}`}
+      className={`group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-surface text-left transition-colors focus:outline-none focus-visible:border-signal ${
+        fresh ? "border-signal/50 hover:border-signal" : "border-border hover:border-muted"
+      } ${delisted ? "opacity-60" : ""}`}
     >
       <div className="relative aspect-[3/2] bg-surface-2">
         {lead ? (
@@ -67,44 +67,32 @@ function ListingCard({
           <ImagePlaceholder />
         )}
         {fresh && (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-bg/80 px-2 py-0.5 text-xs font-medium text-signal backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden="true" />
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-signal px-2 py-0.5 text-xs font-semibold text-on-signal">
+            <span className="h-1.5 w-1.5 rounded-full bg-on-signal/70" aria-hidden="true" />
             New
           </span>
         )}
         {delisted && (
-          <span className="absolute left-3 top-3 rounded-full bg-bg/80 px-2 py-0.5 text-xs font-medium text-removed backdrop-blur-sm">
+          <span className="absolute left-3 top-3 rounded-full bg-bg/85 px-2 py-0.5 text-xs font-medium text-removed backdrop-blur-sm">
             Entfernt
           </span>
         )}
-        <span className="absolute right-3 top-3 rounded-full bg-bg/70 px-2 py-0.5 text-xs text-muted backdrop-blur-sm">
+        <span className="absolute right-3 top-3 rounded-full bg-bg/75 px-2 py-0.5 text-xs text-muted backdrop-blur-sm">
           {listing.source}
         </span>
+        {images.length > 1 && (
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-bg/75 px-2 py-0.5 text-xs text-text backdrop-blur-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none" />
+              <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {images.length}
+          </span>
+        )}
       </div>
 
-      {thumbs.length > 0 && (
-        <div className="grid grid-cols-3 gap-1 p-1">
-          {thumbs.map((src, i) => (
-            <div key={src} className="relative aspect-[4/3] overflow-hidden rounded bg-surface-2">
-              <Image
-                src={src}
-                alt=""
-                fill
-                className={`object-cover ${delisted ? "grayscale" : ""}`}
-                sizes="(max-width: 640px) 33vw, (max-width: 1024px) 17vw, 11vw"
-              />
-              {/* If more images exist than we can show, mark the last tile. */}
-              {i === thumbs.length - 1 && rest.length > thumbs.length && (
-                <span className="absolute inset-0 flex items-center justify-center bg-bg/60 text-xs font-medium text-text">
-                  +{rest.length - thumbs.length}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex items-baseline justify-between gap-3">
           <span className="tnum font-display text-xl font-semibold text-text">
             {listing.totalRent != null ? `€${listing.totalRent}` : "—"}
@@ -121,10 +109,10 @@ function ListingCard({
         {listing.baseRent != null && (
           <p className="tnum mt-0.5 text-xs text-muted">€{listing.baseRent} kalt</p>
         )}
-        <h3 className="mt-2 truncate text-sm text-text/90 group-hover:text-text">
+        <h3 className="mt-2 line-clamp-2 text-sm text-text/90 group-hover:text-text">
           {listing.title}
         </h3>
-        <div className="mt-3 flex items-center justify-between text-xs text-muted">
+        <div className="mt-auto flex items-center justify-between pt-3 text-xs text-muted">
           <span className="truncate">{listing.district ?? listing.location}</span>
           <RelativeTime ms={listing.timestamp} className="shrink-0 tnum" />
         </div>

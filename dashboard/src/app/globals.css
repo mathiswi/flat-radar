@@ -1,9 +1,29 @@
 @import "tailwindcss";
 
-/* Flat Radar — dark editorial radar. Deep-slate base, one warm "signal" accent
-   reserved for freshness. Registered as Tailwind theme tokens so utilities like
-   bg-surface / text-signal / font-display are generated. */
+/* Flat Radar palette. Light is the default; dark is opt-in via [data-theme="dark"]
+   (set by the header toggle, persisted in localStorage). Every component styles
+   itself from these tokens, so both themes flow from the values here. */
 @theme {
+  /* --- Light (default) --- */
+  --color-bg: #f5f3ee;
+  --color-surface: #ffffff;
+  --color-surface-2: #eceae3;
+  --color-border: #e1dcd1;
+  --color-text: #262420;
+  --color-muted: #78736a;
+  --color-signal: #c2740a;
+  --color-signal-soft: #f6e7cb;
+  --color-on-signal: #2a1e0c;
+  --color-removed: #9b968c;
+  --color-danger: #b23b2c;
+  --color-danger-soft: #f7e3df;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* --- Dark (opt-in) --- */
+:root[data-theme="dark"] {
   --color-bg: #0f1419;
   --color-surface: #161d25;
   --color-surface-2: #1e2731;
@@ -15,9 +35,6 @@
   --color-removed: #6b7280;
   --color-danger: #f47171;
   --color-danger-soft: #3a1f1f;
-
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -29,11 +46,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Leaflet map: dark base + inverted OSM tiles so the light basemap reads as dark. */
+/* Leaflet map surface. Tiles are plain OSM in light; in dark they're inverted
+   so the light basemap reads as dark. */
 .leaflet-container {
   background: var(--color-surface-2);
   font-family: var(--font-sans);
 }
-.map-tiles {
+:root[data-theme="dark"] .map-tiles {
   filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
 }

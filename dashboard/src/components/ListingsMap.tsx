@@ -6,10 +6,10 @@ import "leaflet/dist/leaflet.css";
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
-// On-palette marker colors so the map reads as part of the radar.
-const SIGNAL = "#ffc24b";
-const REMOVED = "#6b7280";
-const NORMAL = "#c3ccd6";
+// Marker colors chosen to read on both the light and (inverted) dark basemap.
+const SIGNAL = "#f5a623";
+const REMOVED = "#94a3b8";
+const NORMAL = "#3b82f6";
 
 function colorFor(l: Listing): string {
   if (l.delistedAt != null) return REMOVED;

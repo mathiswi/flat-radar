@@ -6,7 +6,7 @@ import type { Feed } from "@/lib/types";
 const FIELD =
   "rounded-md border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
 const BTN_PRIMARY =
-  "rounded-md bg-signal px-3 py-1.5 text-sm font-medium text-bg transition-colors hover:bg-signal/90 disabled:opacity-50";
+  "rounded-md bg-signal px-3 py-1.5 text-sm font-semibold text-on-signal transition-colors hover:brightness-110 disabled:opacity-50";
 const BTN_SECONDARY =
   "rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text";
 
@@ -275,14 +275,14 @@ export function FeedEditor() {
                   <td className="px-3 py-3">
                     <button
                       onClick={() => toggleEnabled(feed)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
                         feed.enabled
-                          ? "bg-signal-soft text-signal"
+                          ? "bg-signal text-on-signal"
                           : "bg-surface-2 text-muted"
                       }`}
                     >
                       <span
-                        className={`h-1.5 w-1.5 rounded-full ${feed.enabled ? "bg-signal" : "bg-muted"}`}
+                        className={`h-1.5 w-1.5 rounded-full ${feed.enabled ? "bg-on-signal/70" : "bg-muted"}`}
                         aria-hidden="true"
                       />
                       {feed.enabled ? "on" : "off"}
