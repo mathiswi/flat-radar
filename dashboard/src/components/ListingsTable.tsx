@@ -4,7 +4,13 @@ import { RelativeTime } from "@/components/RelativeTime";
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
-export function ListingsTable({ listings }: { listings: Listing[] }) {
+export function ListingsTable({
+  listings,
+  onSelect,
+}: {
+  listings: Listing[];
+  onSelect: (listing: Listing) => void;
+}) {
   if (listings.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border py-16 text-center text-muted">
@@ -49,14 +55,13 @@ export function ListingsTable({ listings }: { listings: Listing[] }) {
                   )}
                 </td>
                 <td className="max-w-xs px-3 py-3">
-                  <a
-                    href={listing.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block truncate hover:text-signal hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => onSelect(listing)}
+                    className="block max-w-full truncate text-left hover:text-signal hover:underline"
                   >
                     {listing.title}
-                  </a>
+                  </button>
                   {delisted && (
                     <span className="mt-0.5 inline-block text-xs text-removed">Entfernt</span>
                   )}

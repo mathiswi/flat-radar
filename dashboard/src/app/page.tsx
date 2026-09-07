@@ -42,11 +42,14 @@ async function fetchFeedDistricts(): Promise<string[]> {
 }
 
 export default async function DashboardPage() {
+  // Fail soft: a backend hiccup should degrade the page, not blank it. Listings
+  // are the core, so a null result flips the whole view into an offline notice.
   const [stats, listings, feedDistricts] = await Promise.all([
-    fetchStats(),
-    fetchListings(),
+    fetchStats().catch(() => null),
+    fetchListings().catch(() => null),
     fetchFeedDistricts(),
   ]);
+  const backendDown = listings === null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -62,10 +65,29 @@ export default async function DashboardPage() {
           Feeds
         </Link>
       </header>
-      <StatsBar stats={stats} />
       <AutoRefresh />
-      <ViewToggle listings={listings} feedDistricts={feedDistricts} />
+      {backendDown ? (
+        <BackendOffline />
+      ) : (
+        <>
+          {stats && <StatsBar stats={stats} />}
+          <ViewToggle listings={listings} feedDistricts={feedDistricts} />
+        </>
+      )}
     </main>
+  );
+}
+
+/** Shown when the listings API can't be reached — the auto-refresh keeps retrying. */
+function BackendOffline() {
+  return (
+    <div className="rounded-xl border border-border bg-surface/40 py-16 text-center">
+      <p className="font-display text-lg text-text">Can&apos;t reach the backend</p>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
+        Listings can&apos;t load right now. This page retries on its own every minute — or
+        reload once the API is back.
+      </p>
+    </div>
   );
 }
 

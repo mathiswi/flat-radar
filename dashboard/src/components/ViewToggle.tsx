@@ -1,10 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { ListingsGrid } from "@/components/ListingsGrid";
 import { ListingsTable } from "@/components/ListingsTable";
+import { ListingDetail } from "@/components/ListingDetail";
 import { FilterBar } from "@/components/FilterBar";
 import { Pagination } from "@/components/Pagination";
+
+// Leaflet touches `window`, so the map loads client-side only.
+const ListingsMap = dynamic(
+  () => import("@/components/ListingsMap").then((m) => m.ListingsMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[32rem] items-center justify-center rounded-xl border border-border bg-surface/40 text-sm text-muted">
+        Loading map…
+      </div>
+    ),
+  },
+);
 import {
   emptyFilters,
   filtersActive,
@@ -17,7 +32,7 @@ import {
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
-type View = "grid" | "table";
+type View = "grid" | "table" | "map";
 
 const PAGE_SIZE = 24;
 const sortKeys = Object.keys(sortLabels) as SortKey[];
@@ -34,6 +49,7 @@ export function ViewToggle({
   const [sort, setSort] = useState<SortKey>("newest");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Listing | null>(null);
 
   // District options come from the configured feeds (source of truth), unioned
   // with any districts present in the listings so legacy/delisted rows stay
@@ -82,7 +98,7 @@ export function ViewToggle({
       />
       <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-3">
         <div className="flex rounded-md border border-border p-0.5">
-          {(["grid", "table"] as const).map((v) => (
+          {(["grid", "table", "map"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -130,18 +146,27 @@ export function ViewToggle({
           </label>
         </div>
       </div>
-      <div className={view === "grid" ? "" : "hidden"}>
-        <ListingsGrid listings={pageItems} />
-      </div>
-      <div className={view === "table" ? "" : "hidden"}>
-        <ListingsTable listings={pageItems} />
-      </div>
-      <Pagination
-        page={safePage}
-        pageCount={pageCount}
-        total={ordered.length}
-        onPage={(p) => setPage(Math.min(Math.max(1, p), pageCount))}
-      />
+      {view === "map" ? (
+        // The map plots the whole filtered set, not one page.
+        <ListingsMap listings={ordered} onSelect={setSelected} />
+      ) : (
+        <>
+          <div className={view === "grid" ? "" : "hidden"}>
+            <ListingsGrid listings={pageItems} onSelect={setSelected} />
+          </div>
+          <div className={view === "table" ? "" : "hidden"}>
+            <ListingsTable listings={pageItems} onSelect={setSelected} />
+          </div>
+          <Pagination
+            page={safePage}
+            pageCount={pageCount}
+            total={ordered.length}
+            onPage={(p) => setPage(Math.min(Math.max(1, p), pageCount))}
+          />
+        </>
+      )}
+
+      {selected && <ListingDetail listing={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }
