@@ -3,7 +3,7 @@
 import type { Filters } from "@/lib/filters";
 
 const FIELD =
-  "rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none";
+  "rounded-md border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
 const NUM = `${FIELD} w-20`;
 
 export function FilterBar({
@@ -22,7 +22,7 @@ export function FilterBar({
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
 
   return (
-    <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
+    <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface/40 p-3">
       <Field label="District">
         {/* Options come from the configured feeds (see ViewToggle), unioned with
             districts present in the listings. */}
@@ -62,7 +62,7 @@ export function FilterBar({
             onChange={(e) => set({ minRent: e.target.value })}
             className={NUM}
           />
-          <span className="text-zinc-500">–</span>
+          <span className="text-muted">–</span>
           <input
             type="number"
             inputMode="numeric"
@@ -84,7 +84,7 @@ export function FilterBar({
             onChange={(e) => set({ minSize: e.target.value })}
             className={NUM}
           />
-          <span className="text-zinc-500">–</span>
+          <span className="text-muted">–</span>
           <input
             type="number"
             inputMode="numeric"
@@ -111,7 +111,7 @@ export function FilterBar({
       {active && (
         <button
           onClick={onReset}
-          className="rounded bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:text-zinc-100"
+          className="rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text"
         >
           Reset
         </button>
@@ -122,7 +122,7 @@ export function FilterBar({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-zinc-400">
+    <label className="flex flex-col gap-1 text-xs text-muted">
       {label}
       {children}
     </label>

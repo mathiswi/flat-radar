@@ -4,9 +4,19 @@ import { useEffect, useState } from "react";
 import type { Feed } from "@/lib/types";
 
 const FIELD =
-  "rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none";
+  "rounded-md border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
+const BTN_PRIMARY =
+  "rounded-md bg-signal px-3 py-1.5 text-sm font-medium text-bg transition-colors hover:bg-signal/90 disabled:opacity-50";
+const BTN_SECONDARY =
+  "rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text";
 
-const SOURCES = ["kleinanzeigen", "immoscout24"];
+// Fallback for when /api/sources is unreachable; the live list is fetched from
+// the backend (the one shared source of truth) so this copy can't cause drift.
+const FALLBACK_SOURCES = ["kleinanzeigen", "immoscout24"];
+
+// Mirrors the backend's KLEINANZEIGEN_CATEGORY guard: a 'c203' category segment
+// anchored to a '/' or the URL bounds, not an incidental substring.
+const KLEINANZEIGEN_CATEGORY = /(^|\/)c203(l\d+)?([/?#]|$)/;
 
 const emptyFeed: Feed = {
   id: "",
@@ -19,7 +29,9 @@ const emptyFeed: Feed = {
 
 export function FeedEditor() {
   const [feeds, setFeeds] = useState<Feed[]>([]);
+  const [sources, setSources] = useState<string[]>(FALLBACK_SOURCES);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [draft, setDraft] = useState<Feed | null>(null);
@@ -43,6 +55,14 @@ export function FeedEditor() {
 
   useEffect(() => {
     load();
+    // Sources are optional chrome for the dropdown; if the fetch fails we keep
+    // the fallback and don't surface an error.
+    fetch("/api/sources", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setSources(data);
+      })
+      .catch(() => {});
   }, []);
 
   function startAdd() {
@@ -88,45 +108,61 @@ export function FeedEditor() {
   }
 
   async function toggleEnabled(feed: Feed) {
-    await fetch(`/api/feeds/${encodeURIComponent(feed.id)}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...feed, enabled: !feed.enabled }),
-    });
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/feeds/${encodeURIComponent(feed.id)}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...feed, enabled: !feed.enabled }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `toggle failed: ${res.status}`);
+      }
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "toggle failed");
+    }
     await load();
   }
 
   async function remove(feed: Feed) {
     if (!confirm(`Delete feed "${feed.displayName}" (${feed.id})?`)) return;
-    await fetch(`/api/feeds/${encodeURIComponent(feed.id)}`, { method: "DELETE" });
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/feeds/${encodeURIComponent(feed.id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `delete failed: ${res.status}`);
+      }
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "delete failed");
+    }
     await load();
   }
 
   // Mirrors the backend guard so the operator sees it before submitting.
   const c203Warning =
-    draft && draft.source === "kleinanzeigen" && draft.url.length > 0 && !draft.url.includes("c203")
-      ? "Kleinanzeigen URL should be category-locked (contain 'c203') or it pulls cross-category junk."
+    draft && draft.source === "kleinanzeigen" && draft.url.length > 0 && !KLEINANZEIGEN_CATEGORY.test(draft.url)
+      ? "Kleinanzeigen URL should be category-locked (a 'c203' category segment) or it pulls cross-category junk."
       : null;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">Feeds</h2>
+        <h2 className="font-display text-lg font-semibold">Feeds</h2>
         {!draft && (
-          <button
-            onClick={startAdd}
-            className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-100 hover:bg-zinc-600"
-          >
-            + Add feed
+          <button onClick={startAdd} className={BTN_PRIMARY}>
+            Add feed
           </button>
         )}
       </div>
 
-      {loadError && <p className="text-sm text-red-400">Failed to load feeds: {loadError}</p>}
+      {loadError && <p className="text-sm text-danger">Failed to load feeds: {loadError}</p>}
+      {actionError && <p className="text-sm text-danger">{actionError}</p>}
 
       {draft && (
-        <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
-          <h3 className="text-sm font-medium text-zinc-300">
+        <div className="space-y-3 rounded-xl border border-border bg-surface/40 p-4">
+          <h3 className="text-sm font-medium text-text">
             {editingId === null ? "New feed" : `Edit ${editingId}`}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -151,7 +187,7 @@ export function FeedEditor() {
                 value={draft.source}
                 onChange={(e) => setDraft({ ...draft, source: e.target.value })}
               >
-                {SOURCES.map((s) => (
+                {sources.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -174,10 +210,10 @@ export function FeedEditor() {
                 />
               </Field>
             </div>
-            <label className="flex items-center gap-2 text-sm text-zinc-300">
+            <label className="flex items-center gap-2 text-sm text-text">
               <input
                 type="checkbox"
-                className="accent-zinc-600"
+                className="accent-signal"
                 checked={draft.enabled}
                 onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })}
               />
@@ -185,21 +221,14 @@ export function FeedEditor() {
             </label>
           </div>
 
-          {c203Warning && <p className="text-sm text-amber-400">{c203Warning}</p>}
-          {formError && <p className="text-sm text-red-400">{formError}</p>}
+          {c203Warning && <p className="text-sm text-signal">{c203Warning}</p>}
+          {formError && <p className="text-sm text-danger">{formError}</p>}
 
           <div className="flex gap-2">
-            <button
-              onClick={save}
-              disabled={saving}
-              className="rounded bg-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-100 hover:bg-zinc-600 disabled:opacity-50"
-            >
+            <button onClick={save} disabled={saving} className={BTN_PRIMARY}>
               {saving ? "Saving…" : "Save"}
             </button>
-            <button
-              onClick={cancel}
-              className="rounded bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:text-zinc-100"
-            >
+            <button onClick={cancel} className={BTN_SECONDARY}>
               Cancel
             </button>
           </div>
@@ -207,65 +236,69 @@ export function FeedEditor() {
       )}
 
       {loading ? (
-        <p className="text-sm text-zinc-500">Loading…</p>
+        <p className="text-sm text-muted">Loading…</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-800">
+        <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-900/60 text-xs uppercase text-zinc-500">
+            <thead className="border-b border-border bg-surface text-xs text-muted">
               <tr>
-                <th className="px-3 py-2">Feed</th>
-                <th className="px-3 py-2">Source</th>
-                <th className="px-3 py-2">District</th>
-                <th className="px-3 py-2">Enabled</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-3 font-medium">Feed</th>
+                <th className="px-3 py-3 font-medium">Source</th>
+                <th className="px-3 py-3 font-medium">District</th>
+                <th className="px-3 py-3 font-medium">Enabled</th>
+                <th className="px-3 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {feeds.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-4 text-zinc-500">
+                  <td colSpan={5} className="px-3 py-4 text-muted">
                     No feeds configured. Add one to start scraping.
                   </td>
                 </tr>
               )}
               {feeds.map((feed) => (
-                <tr key={feed.id} className="border-t border-zinc-800">
-                  <td className="px-3 py-2">
-                    <div className="font-medium text-zinc-200">{feed.displayName}</div>
+                <tr key={feed.id} className="border-b border-border last:border-0">
+                  <td className="px-3 py-3">
+                    <div className="font-medium text-text">{feed.displayName}</div>
                     <a
                       href={feed.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block max-w-md truncate text-xs text-zinc-500 hover:text-zinc-300"
+                      className="block max-w-md truncate text-xs text-muted hover:text-text"
                     >
                       {feed.id} · {feed.url}
                     </a>
                   </td>
-                  <td className="px-3 py-2 text-zinc-400">{feed.source}</td>
-                  <td className="px-3 py-2 text-zinc-400">{feed.district}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-3 text-muted">{feed.source}</td>
+                  <td className="px-3 py-3 text-muted">{feed.district}</td>
+                  <td className="px-3 py-3">
                     <button
                       onClick={() => toggleEnabled(feed)}
-                      className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                         feed.enabled
-                          ? "bg-emerald-900/50 text-emerald-300"
-                          : "bg-zinc-800 text-zinc-500"
+                          ? "bg-signal-soft text-signal"
+                          : "bg-surface-2 text-muted"
                       }`}
                     >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${feed.enabled ? "bg-signal" : "bg-muted"}`}
+                        aria-hidden="true"
+                      />
                       {feed.enabled ? "on" : "off"}
                     </button>
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-3 py-3">
+                    <div className="flex justify-end gap-3">
                       <button
                         onClick={() => startEdit(feed)}
-                        className="text-xs text-zinc-400 hover:text-zinc-100"
+                        className="text-xs text-muted hover:text-text"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => remove(feed)}
-                        className="text-xs text-red-400 hover:text-red-300"
+                        className="text-xs text-danger hover:brightness-110"
                       >
                         Delete
                       </button>
@@ -283,7 +316,7 @@ export function FeedEditor() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-zinc-400">
+    <label className="flex flex-col gap-1 text-xs text-muted">
       {label}
       {children}
     </label>

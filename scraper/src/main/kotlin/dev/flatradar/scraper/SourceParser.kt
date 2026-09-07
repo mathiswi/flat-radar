@@ -2,6 +2,7 @@ package dev.flatradar.scraper
 
 import dev.flatradar.shared.ApartmentAd
 import dev.flatradar.shared.FeedConfig
+import dev.flatradar.shared.KnownSources
 
 /**
  * Parses search-results and detail pages for one listing source (e.g.
@@ -58,6 +59,15 @@ object SourceParsers {
         "kleinanzeigen" to dev.flatradar.scraper.kleinanzeigen.KleinanzeigenParser,
         "immoscout24" to dev.flatradar.scraper.immoscout24.ImmoscoutParser,
     )
+
+    init {
+        // Fail fast if the registry and the shared list of valid source names ever
+        // drift - e.g. a parser added here but not to KnownSources (or vice versa).
+        require(all.keys == KnownSources.all.toSet()) {
+            "SourceParsers and KnownSources are out of sync: " +
+                "parsers=${all.keys}, known=${KnownSources.all}"
+        }
+    }
 
     fun get(source: String): SourceParser? = all[source]
 }

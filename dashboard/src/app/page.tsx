@@ -49,16 +49,34 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Flat Radar</h1>
-        <Link href="/admin/feeds" className="text-sm text-zinc-400 hover:text-zinc-100">
-          Feeds →
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <header className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <RadarMark />
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Flat Radar</h1>
+        </div>
+        <Link
+          href="/admin/feeds"
+          className="rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text"
+        >
+          Feeds
         </Link>
-      </div>
+      </header>
       <StatsBar stats={stats} />
       <AutoRefresh />
       <ViewToggle listings={listings} feedDistricts={feedDistricts} />
     </main>
+  );
+}
+
+/** A small radar sweep — the one bit of iconography, in the signal color. */
+function RadarMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.25" stroke="var(--color-border)" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="4.75" stroke="var(--color-border)" strokeWidth="1.5" />
+      <path d="M12 12 12 3.25" stroke="var(--color-signal)" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="1.6" fill="var(--color-signal)" />
+    </svg>
   );
 }

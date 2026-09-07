@@ -1,6 +1,7 @@
 package dev.flatradar.backend
 
 import dev.flatradar.shared.FeedConfig
+import dev.flatradar.shared.KnownSources
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -14,7 +15,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** Sources the scraper knows how to parse. A feed for any other source would be silently skipped. */
-private val KNOWN_SOURCES = setOf("kleinanzeigen", "immoscout24")
+private val KNOWN_SOURCES = KnownSources.all.toSet()
+
+/**
+ * A Kleinanzeigen search URL is category-locked when a path segment is the
+ * apartments-for-rent category code `c203` (optionally with a `l<locationId>`
+ * suffix, e.g. `c203l26487`). Anchored to a `/` or the string bounds so an
+ * incidental `c203` elsewhere in the URL (a district slug, a query value, a
+ * fragment) doesn't count as category-locked.
+ */
+private val KLEINANZEIGEN_CATEGORY = Regex("""(?:^|/)c203(?:l\d+)?(?=[/?#]|$)""")
 
 /**
  * Feed CRUD - the DB-backed replacement for the VPS-local `feeds.json`. The
@@ -26,6 +36,12 @@ private val KNOWN_SOURCES = setOf("kleinanzeigen", "immoscout24")
  * URL that isn't category-locked (`c203`) pulls every category and is rejected.
  */
 fun Route.feedCrudRoutes(repository: FeedRepository) {
+    // The valid source names, so the dashboard dropdown reads them from the one
+    // shared list rather than hardcoding its own copy.
+    get("$API_V1/sources") {
+        call.respond(KnownSources.all)
+    }
+
     route("$API_V1/feeds") {
         get {
             val feeds = withContext(Dispatchers.IO) { repository.all() }
@@ -35,11 +51,13 @@ fun Route.feedCrudRoutes(repository: FeedRepository) {
         post {
             val feed = call.receive<FeedConfig>()
             validate(feed)?.let { return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse(it)) }
-            val created = withContext(Dispatchers.IO) { repository.upsert(feed) }
-            call.respond(
-                if (created) HttpStatusCode.Created else HttpStatusCode.OK,
-                StatusResponse(if (created) "created" else "updated"),
-            )
+            val created = withContext(Dispatchers.IO) { repository.create(feed) }
+            if (created) {
+                call.respond(HttpStatusCode.Created, StatusResponse("created"))
+            } else {
+                // Create is not overwrite: a duplicate id is a conflict, not a silent clobber.
+                call.respond(HttpStatusCode.Conflict, ErrorResponse("feed with id '${feed.id}' already exists"))
+            }
         }
 
         route("{feedId}") {
@@ -48,8 +66,13 @@ fun Route.feedCrudRoutes(repository: FeedRepository) {
                 // The path is authoritative for the id, so a body id is ignored (or absent).
                 val feed = call.receive<FeedConfig>().copy(id = feedId)
                 validate(feed)?.let { return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse(it)) }
-                withContext(Dispatchers.IO) { repository.upsert(feed) }
-                call.respond(HttpStatusCode.OK, StatusResponse("updated"))
+                val updated = withContext(Dispatchers.IO) { repository.update(feed) }
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, StatusResponse("updated"))
+                } else {
+                    // Update never creates: a PUT to an unknown id is a 404, not a new feed.
+                    call.respond(HttpStatusCode.NotFound, ErrorResponse("no feed with id '$feedId'"))
+                }
             }
 
             delete {
@@ -78,8 +101,8 @@ internal fun validate(feed: FeedConfig): String? {
     }
     // The junk-listings guard: a loose Kleinanzeigen search (no c203 category lock)
     // returns every category, not just apartments.
-    if (feed.source == "kleinanzeigen" && !feed.url.contains("c203")) {
-        return "Kleinanzeigen url must be category-locked (contain 'c203'); a loose search pulls cross-category junk"
+    if (feed.source == "kleinanzeigen" && !KLEINANZEIGEN_CATEGORY.containsMatchIn(feed.url)) {
+        return "Kleinanzeigen url must be category-locked (a 'c203' category segment); a loose search pulls cross-category junk"
     }
     return null
 }
