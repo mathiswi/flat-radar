@@ -1,6 +1,7 @@
 package dev.flatradar.backend
 
 import dev.flatradar.shared.FeedConfig
+import dev.flatradar.shared.KnownSources
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -12,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import org.h2.jdbcx.JdbcDataSource
 import java.util.concurrent.atomic.AtomicInteger
@@ -64,7 +66,7 @@ class FeedCrudRoutesTest {
     }
 
     @Test
-    fun posting_same_id_twice_returns_created_then_ok() = testApplication {
+    fun posting_same_id_twice_conflicts_without_clobbering() = testApplication {
         application { module(freshDataSource(), TEST_CHANGELOG) }
 
         val first = client.post("/api/v1/feeds") {
@@ -76,14 +78,16 @@ class FeedCrudRoutesTest {
             contentType(ContentType.Application.Json)
             setBody(body(feed().copy(displayName = "renamed")))
         }
-        assertEquals(HttpStatusCode.OK, second.status)
+        assertEquals(HttpStatusCode.Conflict, second.status)
+        assertTrue(second.bodyAsText().contains("already exists"))
 
+        // The original feed is untouched - create never overwrites.
         val feeds = json.decodeFromString(
             ListSerializer(FeedConfig.serializer()),
             client.get("/api/v1/feeds").bodyAsText(),
         )
         assertEquals(1, feeds.size)
-        assertEquals("renamed", feeds[0].displayName)
+        assertEquals("Kleinanzeigen Barmbek", feeds[0].displayName)
     }
 
     @Test
@@ -149,6 +153,34 @@ class FeedCrudRoutesTest {
         assertEquals(1, feeds.size)
         assertEquals("barmbek", feeds[0].id)
         assertEquals(false, feeds[0].enabled)
+    }
+
+    @Test
+    fun put_to_unknown_id_404s_without_creating() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        val res = client.put("/api/v1/feeds/nope") {
+            contentType(ContentType.Application.Json)
+            setBody(body(feed().copy(id = "nope")))
+        }
+        assertEquals(HttpStatusCode.NotFound, res.status)
+
+        // No feed was created by the failed update.
+        val feeds = json.decodeFromString(
+            ListSerializer(FeedConfig.serializer()),
+            client.get("/api/v1/feeds").bodyAsText(),
+        )
+        assertTrue(feeds.isEmpty())
+    }
+
+    @Test
+    fun sources_lists_known_sources() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        val res = client.get("/api/v1/sources")
+        assertEquals(HttpStatusCode.OK, res.status)
+        val sources = json.decodeFromString(ListSerializer(String.serializer()), res.bodyAsText())
+        assertEquals(KnownSources.all, sources)
     }
 
     @Test

@@ -54,3 +54,34 @@ export function matchesFilters(l: Listing, f: Filters): boolean {
 
   return true;
 }
+
+/** How the listing grid/table is ordered. "newest" is the default. */
+export type SortKey = "newest" | "priceAsc" | "priceDesc" | "sizeDesc";
+
+export const sortLabels: Record<SortKey, string> = {
+  newest: "Newest first",
+  priceAsc: "Price: low to high",
+  priceDesc: "Price: high to low",
+  sizeDesc: "Size: large to small",
+};
+
+/** Orders two nullable numbers, always sinking nulls to the bottom regardless of direction. */
+function nullsLast(a: number | null, b: number | null, cmp: (x: number, y: number) => number): number {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return cmp(a, b);
+}
+
+/** Comparator per sort option. Listings missing the sorted field sink to the bottom. */
+const comparators: Record<SortKey, (a: Listing, b: Listing) => number> = {
+  newest: (a, b) => b.timestamp - a.timestamp,
+  priceAsc: (a, b) => nullsLast(a.totalRent, b.totalRent, (x, y) => x - y),
+  priceDesc: (a, b) => nullsLast(a.totalRent, b.totalRent, (x, y) => y - x),
+  sizeDesc: (a, b) => nullsLast(a.size, b.size, (x, y) => y - x),
+};
+
+/** Returns a new array ordered by [key], leaving the input untouched. */
+export function sortListings(list: Listing[], key: SortKey): Listing[] {
+  return [...list].sort(comparators[key]);
+}

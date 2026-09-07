@@ -14,10 +14,10 @@ export function Pagination({
   if (total === 0) return null;
 
   const btn =
-    "rounded bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 enabled:hover:text-zinc-100 disabled:opacity-40";
+    "rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors enabled:hover:border-muted enabled:hover:text-text disabled:opacity-40";
 
   return (
-    <div className="mt-6 flex items-center justify-center gap-3 text-sm text-zinc-400">
+    <div className="mt-8 flex items-center justify-center gap-3 text-sm text-muted">
       <button className={btn} onClick={() => onPage(page - 1)} disabled={page <= 1}>
         ← Prev
       </button>

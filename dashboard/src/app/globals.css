@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* Flat Radar — dark editorial radar. Deep-slate base, one warm "signal" accent
+   reserved for freshness. Registered as Tailwind theme tokens so utilities like
+   bg-surface / text-signal / font-display are generated. */
+@theme {
+  --color-bg: #0f1419;
+  --color-surface: #161d25;
+  --color-surface-2: #1e2731;
+  --color-border: #29333e;
+  --color-text: #e8edf2;
+  --color-muted: #8b97a5;
+  --color-signal: #ffc24b;
+  --color-signal-soft: #3a2f18;
+  --color-removed: #6b7280;
+  --color-danger: #f47171;
+  --color-danger-soft: #3a1f1f;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Data numerals (rent, size, counts) line up in columns. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
