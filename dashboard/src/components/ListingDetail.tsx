@@ -94,8 +94,8 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {fresh && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-signal-soft px-2 py-0.5 font-medium text-signal">
-                <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-signal px-2 py-0.5 font-semibold text-on-signal">
+                <span className="h-1.5 w-1.5 rounded-full bg-on-signal/70" aria-hidden="true" />
                 New
               </span>
             )}
@@ -140,7 +140,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
             href={listing.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-md bg-signal px-4 py-2 text-sm font-medium text-bg transition-colors hover:bg-signal/90"
+            className="mt-6 inline-flex items-center gap-2 rounded-md bg-signal px-4 py-2 text-sm font-semibold text-on-signal transition-colors hover:brightness-110"
           >
             Open on {listing.source}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

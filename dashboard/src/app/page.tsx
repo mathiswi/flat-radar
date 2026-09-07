@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StatsBar } from "@/components/StatsBar";
 import { ViewToggle } from "@/components/ViewToggle";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { Feed } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -58,12 +59,15 @@ export default async function DashboardPage() {
           <RadarMark />
           <h1 className="font-display text-2xl font-semibold tracking-tight">Flat Radar</h1>
         </div>
-        <Link
-          href="/admin/feeds"
-          className="rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text"
-        >
-          Feeds
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link
+            href="/admin/feeds"
+            className="rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text"
+          >
+            Feeds
+          </Link>
+        </div>
       </header>
       <AutoRefresh />
       {backendDown ? (
