@@ -28,3 +28,12 @@ body {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+
+/* Leaflet map: dark base + inverted OSM tiles so the light basemap reads as dark. */
+.leaflet-container {
+  background: var(--color-surface-2);
+  font-family: var(--font-sans);
+}
+.map-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
+}

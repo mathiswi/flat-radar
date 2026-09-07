@@ -5,7 +5,13 @@ import { RelativeTime } from "@/components/RelativeTime";
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
-export function ListingsGrid({ listings }: { listings: Listing[] }) {
+export function ListingsGrid({
+  listings,
+  onSelect,
+}: {
+  listings: Listing[];
+  onSelect: (listing: Listing) => void;
+}) {
   if (listings.length === 0) {
     return <EmptyState />;
   }
@@ -13,13 +19,19 @@ export function ListingsGrid({ listings }: { listings: Listing[] }) {
   return (
     <div className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map((listing) => (
-        <ListingCard key={listing.id} listing={listing} />
+        <ListingCard key={listing.id} listing={listing} onSelect={onSelect} />
       ))}
     </div>
   );
 }
 
-function ListingCard({ listing }: { listing: Listing }) {
+function ListingCard({
+  listing,
+  onSelect,
+}: {
+  listing: Listing;
+  onSelect: (listing: Listing) => void;
+}) {
   const delisted = listing.delistedAt != null;
   const fresh = !delisted && isNew(listing.timestamp);
 
@@ -35,11 +47,10 @@ function ListingCard({ listing }: { listing: Listing }) {
   const rooms = listing.rooms != null ? `${listing.rooms} Zi.` : "";
 
   return (
-    <a
-      href={listing.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`group block overflow-hidden rounded-xl border bg-surface transition-colors focus:outline-none focus-visible:border-signal ${
+    <button
+      type="button"
+      onClick={() => onSelect(listing)}
+      className={`group block w-full overflow-hidden rounded-xl border bg-surface text-left transition-colors focus:outline-none focus-visible:border-signal ${
         fresh ? "border-signal/40 hover:border-signal/70" : "border-border hover:border-muted"
       } ${delisted ? "opacity-55" : ""}`}
     >
@@ -118,7 +129,7 @@ function ListingCard({ listing }: { listing: Listing }) {
           <RelativeTime ms={listing.timestamp} className="shrink-0 tnum" />
         </div>
       </div>
-    </a>
+    </button>
   );
 }
 
