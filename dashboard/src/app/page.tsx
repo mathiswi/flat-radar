@@ -54,16 +54,15 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <header className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <RadarMark />
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Flat Radar</h1>
-        </div>
+      <header className="mb-6 flex items-end justify-between border-b-2 border-border pb-4">
+        <h1 className="font-display text-3xl font-extrabold leading-none tracking-tight sm:text-4xl">
+          Flat Radar<span className="text-signal">.</span>
+        </h1>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link
             href="/admin/feeds"
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text"
+            className="border border-border px-3 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors hover:bg-border hover:text-bg"
           >
             Feeds
           </Link>
@@ -85,24 +84,12 @@ export default async function DashboardPage() {
 /** Shown when the listings API can't be reached — the auto-refresh keeps retrying. */
 function BackendOffline() {
   return (
-    <div className="rounded-xl border border-border bg-surface/40 py-16 text-center">
-      <p className="font-display text-lg text-text">Can&apos;t reach the backend</p>
+    <div className="border-2 border-border bg-surface py-16 text-center">
+      <p className="font-display text-xl font-bold text-text">Can&apos;t reach the backend</p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-muted">
         Listings can&apos;t load right now. This page retries on its own every minute — or
         reload once the API is back.
       </p>
     </div>
-  );
-}
-
-/** A small radar sweep — the one bit of iconography, in the signal color. */
-function RadarMark() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9.25" stroke="var(--color-border)" strokeWidth="1.5" />
-      <circle cx="12" cy="12" r="4.75" stroke="var(--color-border)" strokeWidth="1.5" />
-      <path d="M12 12 12 3.25" stroke="var(--color-signal)" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="12" cy="12" r="1.6" fill="var(--color-signal)" />
-    </svg>
   );
 }

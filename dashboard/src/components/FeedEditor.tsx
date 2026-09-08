@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import type { Feed } from "@/lib/types";
 
 const FIELD =
-  "rounded-md border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
+  "border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
 const BTN_PRIMARY =
-  "rounded-md bg-signal px-3 py-1.5 text-sm font-semibold text-on-signal transition-colors hover:brightness-110 disabled:opacity-50";
+  "bg-signal px-3 py-1.5 text-sm font-extrabold uppercase tracking-wide text-on-signal transition-transform hover:-translate-y-0.5 disabled:opacity-50";
 const BTN_SECONDARY =
-  "rounded-md border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-muted hover:text-text";
+  "border border-border px-3 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors hover:bg-border hover:text-bg";
 
 // Fallback for when /api/sources is unreachable; the live list is fetched from
 // the backend (the one shared source of truth) so this copy can't cause drift.
@@ -149,7 +149,7 @@ export function FeedEditor() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h2 className="font-display text-lg font-semibold">Feeds</h2>
+        <h2 className="font-display text-xl font-extrabold tracking-tight">Feeds</h2>
         {!draft && (
           <button onClick={startAdd} className={BTN_PRIMARY}>
             Add feed
@@ -161,8 +161,8 @@ export function FeedEditor() {
       {actionError && <p className="text-sm text-danger">{actionError}</p>}
 
       {draft && (
-        <div className="space-y-3 rounded-xl border border-border bg-surface/40 p-4">
-          <h3 className="text-sm font-medium text-text">
+        <div className="space-y-3 border border-line bg-surface p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-text">
             {editingId === null ? "New feed" : `Edit ${editingId}`}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -238,14 +238,14 @@ export function FeedEditor() {
       {loading ? (
         <p className="text-sm text-muted">Loading…</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto border-2 border-border">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-surface text-xs text-muted">
+            <thead className="border-b-2 border-border bg-surface text-xs font-semibold uppercase tracking-wide text-muted">
               <tr>
-                <th className="px-3 py-3 font-medium">Feed</th>
-                <th className="px-3 py-3 font-medium">Source</th>
-                <th className="px-3 py-3 font-medium">District</th>
-                <th className="px-3 py-3 font-medium">Enabled</th>
+                <th className="px-3 py-3">Feed</th>
+                <th className="px-3 py-3">Source</th>
+                <th className="px-3 py-3">District</th>
+                <th className="px-3 py-3">Enabled</th>
                 <th className="px-3 py-3"></th>
               </tr>
             </thead>
@@ -258,7 +258,7 @@ export function FeedEditor() {
                 </tr>
               )}
               {feeds.map((feed) => (
-                <tr key={feed.id} className="border-b border-border last:border-0">
+                <tr key={feed.id} className="border-b border-line last:border-0">
                   <td className="px-3 py-3">
                     <div className="font-medium text-text">{feed.displayName}</div>
                     <a
@@ -275,14 +275,14 @@ export function FeedEditor() {
                   <td className="px-3 py-3">
                     <button
                       onClick={() => toggleEnabled(feed)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${
                         feed.enabled
                           ? "bg-signal text-on-signal"
                           : "bg-surface-2 text-muted"
                       }`}
                     >
                       <span
-                        className={`h-1.5 w-1.5 rounded-full ${feed.enabled ? "bg-on-signal/70" : "bg-muted"}`}
+                        className={`h-1.5 w-1.5 ${feed.enabled ? "bg-on-signal" : "bg-muted"}`}
                         aria-hidden="true"
                       />
                       {feed.enabled ? "on" : "off"}
@@ -316,7 +316,7 @@ export function FeedEditor() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-muted">
+    <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
       {label}
       {children}
     </label>

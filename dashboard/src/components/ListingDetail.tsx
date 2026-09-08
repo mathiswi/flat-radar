@@ -75,14 +75,14 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
         role="dialog"
         aria-modal="true"
         aria-label={listing.title}
-        className="relative w-full max-w-3xl rounded-2xl border border-border bg-surface shadow-2xl"
+        className="relative w-full max-w-3xl border-2 border-border bg-surface shadow-[8px_8px_0_0_var(--color-border)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           aria-label="Close"
           autoFocus
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-bg/70 text-muted backdrop-blur-sm transition-colors hover:text-text"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center border-2 border-border bg-bg text-text transition-colors hover:bg-border hover:text-bg"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
@@ -94,29 +94,30 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {fresh && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-signal px-2 py-0.5 font-semibold text-on-signal">
-                <span className="h-1.5 w-1.5 rounded-full bg-on-signal/70" aria-hidden="true" />
+              <span className="bg-signal px-2 py-0.5 font-extrabold uppercase tracking-widest text-on-signal">
                 New
               </span>
             )}
             {delisted && (
-              <span className="rounded-full bg-surface-2 px-2 py-0.5 font-medium text-removed">Entfernt</span>
+              <span className="bg-border px-2 py-0.5 font-bold uppercase tracking-wide text-bg">Entfernt</span>
             )}
-            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{listing.source}</span>
+            <span className="bg-surface-2 px-2 py-0.5 font-semibold uppercase tracking-wide text-muted">
+              {listing.source}
+            </span>
             <RelativeTime ms={listing.timestamp} className="tnum text-muted" />
           </div>
 
-          <h2 className="mt-3 font-display text-xl font-semibold text-text">{listing.title}</h2>
+          <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-text">{listing.title}</h2>
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+          <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2">
             {rent
               .filter(([, v]) => v)
               .map(([label, v], i) => (
                 <div key={label}>
-                  <p className="text-xs text-muted">{label}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
                   <p
-                    className={`tnum font-display font-semibold ${
-                      i === 0 ? "text-2xl text-text" : "text-base text-text/90"
+                    className={`tnum font-display font-extrabold leading-none tracking-tight text-text ${
+                      i === 0 ? "text-3xl" : "text-lg"
                     }`}
                   >
                     {v}
@@ -125,13 +126,13 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
               ))}
           </div>
 
-          <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-5 sm:grid-cols-3">
+          <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t-2 border-border pt-5 sm:grid-cols-3">
             {specs
               .filter(([, v]) => v)
               .map(([label, v]) => (
                 <div key={label}>
-                  <dt className="text-xs text-muted">{label}</dt>
-                  <dd className="tnum mt-0.5 text-sm text-text">{v}</dd>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</dt>
+                  <dd className="tnum mt-0.5 text-sm font-medium text-text">{v}</dd>
                 </div>
               ))}
           </dl>
@@ -140,7 +141,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
             href={listing.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-md bg-signal px-4 py-2 text-sm font-semibold text-on-signal transition-colors hover:brightness-110"
+            className="mt-6 inline-flex items-center gap-2 bg-signal px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-on-signal transition-transform hover:-translate-y-0.5"
           >
             Open on {listing.source}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -164,7 +165,7 @@ function Gallery({ listing, delisted }: { listing: Listing; delisted: boolean })
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-[16/9] items-center justify-center rounded-t-2xl bg-surface-2 text-muted/50">
+      <div className="flex aspect-[16/9] items-center justify-center border-b-2 border-border bg-surface-2 text-muted/50">
         <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
@@ -181,7 +182,7 @@ function Gallery({ listing, delisted }: { listing: Listing; delisted: boolean })
 
   return (
     <div>
-      <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl bg-surface-2">
+      <div className="relative aspect-[16/9] overflow-hidden border-b-2 border-border bg-surface-2">
         <Image
           src={images[safeActive]}
           alt={listing.title}
@@ -198,8 +199,8 @@ function Gallery({ listing, delisted }: { listing: Listing; delisted: boolean })
               key={src}
               onClick={() => setActive(i)}
               aria-label={`Image ${i + 1}`}
-              className={`relative aspect-[4/3] w-20 shrink-0 overflow-hidden rounded ${
-                i === safeActive ? "ring-2 ring-signal" : "opacity-70 hover:opacity-100"
+              className={`relative aspect-[4/3] w-20 shrink-0 overflow-hidden ${
+                i === safeActive ? "ring-2 ring-signal ring-offset-1 ring-offset-surface" : "opacity-70 hover:opacity-100"
               }`}
             >
               <Image src={src} alt="" fill className="object-cover" sizes="80px" />
