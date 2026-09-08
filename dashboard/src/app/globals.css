@@ -1,40 +1,43 @@
 @import "tailwindcss";
 
-/* Flat Radar palette. Light is the default; dark is opt-in via [data-theme="dark"]
-   (set by the header toggle, persisted in localStorage). Every component styles
-   itself from these tokens, so both themes flow from the values here. */
+/* Flat Radar — Bold Swiss poster. Paper ground, ink-black rules, one loud
+   vermilion accent, oversized Bricolage Grotesque numbers. Light is the default;
+   dark is opt-in via [data-theme="dark"] (header toggle, saved to localStorage). */
 @theme {
   /* --- Light (default) --- */
-  --color-bg: #f5f3ee;
+  --color-bg: #f4f2ec;
   --color-surface: #ffffff;
-  --color-surface-2: #eceae3;
-  --color-border: #e1dcd1;
-  --color-text: #262420;
-  --color-muted: #78736a;
-  --color-signal: #c2740a;
-  --color-signal-soft: #f6e7cb;
-  --color-on-signal: #2a1e0c;
-  --color-removed: #9b968c;
-  --color-danger: #b23b2c;
-  --color-danger-soft: #f7e3df;
+  --color-surface-2: #e9e6de;
+  --color-border: #14130f;          /* bold structural rules */
+  --color-line: #d8d4ca;            /* soft hairline dividers */
+  --color-text: #14130f;
+  --color-muted: #6c685f;
+  --color-signal: #ff3b1d;          /* the loud accent */
+  --color-signal-soft: #ffe2db;
+  --color-on-signal: #ffffff;
+  --color-removed: #9a968c;
+  --color-danger: #d92d16;
+  --color-danger-soft: #ffe0da;
 
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* --- Dark (opt-in) --- */
+/* --- Dark (opt-in): invert the neutrals, keep the vermilion loud --- */
 :root[data-theme="dark"] {
-  --color-bg: #0f1419;
-  --color-surface: #161d25;
-  --color-surface-2: #1e2731;
-  --color-border: #29333e;
-  --color-text: #e8edf2;
-  --color-muted: #8b97a5;
-  --color-signal: #ffc24b;
-  --color-signal-soft: #3a2f18;
-  --color-removed: #6b7280;
-  --color-danger: #f47171;
-  --color-danger-soft: #3a1f1f;
+  --color-bg: #0d0d0b;
+  --color-surface: #171613;
+  --color-surface-2: #201e1a;
+  --color-border: #f4f2ec;
+  --color-line: #33302a;
+  --color-text: #f4f2ec;
+  --color-muted: #9a948a;
+  --color-signal: #ff5335;
+  --color-signal-soft: #3a1a12;
+  --color-on-signal: #ffffff;
+  --color-removed: #6c6960;
+  --color-danger: #ff5335;
+  --color-danger-soft: #3a1a12;
 }
 
 body {
@@ -46,8 +49,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Leaflet map surface. Tiles are plain OSM in light; in dark they're inverted
-   so the light basemap reads as dark. */
+/* Leaflet map surface. Plain OSM tiles in light; inverted in dark to match. */
 .leaflet-container {
   background: var(--color-surface-2);
   font-family: var(--font-sans);

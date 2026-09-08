@@ -97,13 +97,13 @@ export function ViewToggle({
         active={filtersActive(filters)}
       />
       <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-3">
-        <div className="flex rounded-md border border-border p-0.5">
+        <div className="flex border border-border">
           {(["grid", "table", "map"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`rounded px-3 py-1 text-sm font-medium capitalize transition-colors ${
-                view === v ? "bg-surface-2 text-text" : "text-muted hover:text-text"
+              className={`px-3 py-1 text-sm font-semibold uppercase tracking-wide transition-colors ${
+                view === v ? "bg-border text-bg" : "text-muted hover:text-text"
               }`}
             >
               {v}
@@ -112,30 +112,30 @@ export function ViewToggle({
         </div>
 
         {newCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 text-sm text-muted">
-            <span className="h-2 w-2 rounded-full bg-signal" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-muted">
+            <span className="h-2.5 w-2.5 bg-signal" aria-hidden="true" />
             <span className="tnum text-text">{newCount}</span> new today
           </span>
         )}
 
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-3">
           {delistedCount > 0 && (
-            <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-muted">
+            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
               <input
                 type="checkbox"
                 checked={!hideDelisted}
                 onChange={(e) => toggleHide(!e.target.checked)}
-                className="accent-signal"
+                className="h-4 w-4 accent-signal"
               />
               Show removed ({delistedCount})
             </label>
           )}
-          <label className="flex items-center gap-2 text-sm text-muted">
+          <label className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
             Sort
             <select
               value={sort}
               onChange={(e) => applySort(e.target.value as SortKey)}
-              className="rounded-md border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none"
+              className="border border-border bg-surface px-2 py-1 text-sm font-normal normal-case tracking-normal text-text focus:border-signal focus:outline-none"
             >
               {sortKeys.map((key) => (
                 <option key={key} value={key}>

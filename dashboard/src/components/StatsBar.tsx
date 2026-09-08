@@ -12,30 +12,27 @@ interface StatsData {
  */
 export function StatsBar({ stats }: { stats: StatsData }) {
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-y border-border py-3 text-sm">
+    <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 pb-1 text-sm">
       <span className="text-muted">
-        <span className="tnum font-display text-base font-medium text-text">
+        <span className="tnum font-display text-lg font-extrabold text-text">
           {stats.totalListings}
         </span>{" "}
-        listings tracked
+        <span className="uppercase tracking-wide">listings tracked</span>
       </span>
 
-      <span className="text-muted">
-        Last scan{" "}
-        <span className="text-text">{stats.lastScrape ?? "never"}</span>
+      <span className="uppercase tracking-wide text-muted">
+        Last scan <span className="normal-case tracking-normal text-text">{stats.lastScrape ?? "never"}</span>
       </span>
 
       {stats.pendingOutbox > 0 && (
-        <span className="text-muted">
-          <span className="tnum text-text">{stats.pendingOutbox}</span> notification
-          {stats.pendingOutbox === 1 ? "" : "s"} queued
+        <span className="uppercase tracking-wide text-muted">
+          <span className="tnum text-text">{stats.pendingOutbox}</span> queued
         </span>
       )}
 
       {stats.deadLettered > 0 && (
-        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-2.5 py-0.5 text-danger">
-          <span className="tnum font-medium">{stats.deadLettered}</span> notification
-          {stats.deadLettered === 1 ? "" : "s"} failed
+        <span className="ml-auto inline-flex items-center gap-1.5 bg-danger px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-on-signal">
+          <span className="tnum">{stats.deadLettered}</span> failed
         </span>
       )}
     </div>

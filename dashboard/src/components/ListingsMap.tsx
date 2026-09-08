@@ -6,10 +6,10 @@ import "leaflet/dist/leaflet.css";
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
-// Marker colors chosen to read on both the light and (inverted) dark basemap.
-const SIGNAL = "#f5a623";
-const REMOVED = "#94a3b8";
-const NORMAL = "#3b82f6";
+// Poster palette markers, readable on both the light and (inverted) dark basemap.
+const SIGNAL = "#ff3b1d"; // new — the loud accent
+const NORMAL = "#1f4bff"; // listed — the map-only second category
+const REMOVED = "#94a3b8"; // removed
 
 function colorFor(l: Listing): string {
   if (l.delistedAt != null) return REMOVED;
@@ -92,18 +92,18 @@ export function ListingsMap({
   const withoutCoords = listings.filter((l) => l.lat == null || l.lon == null).length;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border">
+    <div className="relative overflow-hidden border-2 border-border">
       <div ref={containerRef} className="h-[70vh] min-h-[24rem] w-full bg-surface-2" />
 
-      <div className="pointer-events-none absolute right-3 top-3 z-[1000] flex flex-wrap gap-3 rounded-md border border-border bg-bg/80 px-3 py-1.5 text-xs text-muted backdrop-blur-sm">
+      <div className="pointer-events-none absolute right-3 top-3 z-[1000] flex flex-wrap gap-3 border border-border bg-bg/85 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted backdrop-blur-sm">
         <Dot color={SIGNAL} label="New" />
         <Dot color={NORMAL} label="Listed" />
         <Dot color={REMOVED} label="Removed" />
       </div>
 
       {withoutCoords > 0 && (
-        <div className="absolute bottom-3 left-3 z-[1000] rounded-md border border-border bg-bg/80 px-3 py-1.5 text-xs text-muted backdrop-blur-sm">
-          <span className="tnum text-text">{withoutCoords}</span> without a location, not shown
+        <div className="absolute bottom-3 left-3 z-[1000] border border-border bg-bg/85 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted backdrop-blur-sm">
+          <span className="tnum text-text">{withoutCoords}</span> without a location
         </div>
       )}
     </div>
@@ -113,7 +113,7 @@ export function ListingsMap({
 function Dot({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
+      <span className="h-2.5 w-2.5" style={{ backgroundColor: color }} aria-hidden="true" />
       {label}
     </span>
   );

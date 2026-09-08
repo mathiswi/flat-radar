@@ -34,7 +34,7 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label={mounted ? `Switch to ${theme === "dark" ? "light" : "dark"} theme` : "Switch theme"}
-      className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted transition-colors hover:border-muted hover:text-text"
+      className="flex h-9 w-9 items-center justify-center border border-border text-text transition-colors hover:bg-border hover:text-bg"
     >
       {/* Render both, reveal one after mount so SSR markup is theme-agnostic. */}
       <SunIcon className={!mounted || theme === "dark" ? "hidden" : ""} />
