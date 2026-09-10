@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { RelativeTime } from "@/components/RelativeTime";
-import { isNew } from "@/lib/time";
+import { formatIsoDate, isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
 export function ListingsGrid({
@@ -45,6 +45,7 @@ function ListingCard({
 
   const size = listing.size != null ? `${listing.size} m²` : "";
   const rooms = listing.rooms != null ? `${listing.rooms} Zi.` : "";
+  const availableFrom = formatIsoDate(listing.availableFrom);
 
   return (
     <button
@@ -107,9 +108,14 @@ function ListingCard({
             </span>
           )}
         </div>
-        {listing.baseRent != null && (
+        {(listing.baseRent != null || availableFrom) && (
           <p className="tnum mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
-            €{listing.baseRent} kalt
+            {[
+              listing.baseRent != null ? `€${listing.baseRent} kalt` : null,
+              availableFrom ? `frei ab ${availableFrom}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         )}
         <h3 className="mt-2 line-clamp-2 text-sm font-medium text-text">{listing.title}</h3>

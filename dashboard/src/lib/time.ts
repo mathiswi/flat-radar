@@ -27,6 +27,17 @@ export function relativeTime(ms: number, now: number = Date.now()): string {
   return compactDate(ms);
 }
 
+/**
+ * ISO date "YYYY-MM-DD" → "dd.mm.yyyy" (full) or "dd.mm.yy" (compact). Null-safe and
+ * locale-free, so it renders the same on server and client. Used for availableFrom.
+ */
+export function formatIsoDate(iso: string | null, full = false): string | null {
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-");
+  if (!y || !m || !d) return iso;
+  return full ? `${d}.${m}.${y}` : `${d}.${m}.${y.slice(2)}`;
+}
+
 /** Deterministic dd.mm. in UTC — the stable value shown before the client mounts. */
 export function compactDate(ms: number): string {
   const d = new Date(ms);

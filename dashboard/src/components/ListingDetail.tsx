@@ -4,19 +4,13 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { RelativeTime } from "@/components/RelativeTime";
-import { isNew } from "@/lib/time";
+import { formatIsoDate, isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
 const euro = new Intl.NumberFormat("de-DE");
 
 function formatEuro(n: number | null): string | null {
   return n == null ? null : `€${euro.format(n)}`;
-}
-
-function formatDate(iso: string | null): string | null {
-  if (!iso) return null;
-  const [y, m, d] = iso.split("-");
-  return y && m && d ? `${d}.${m}.${y}` : iso;
 }
 
 function formatDistance(m: number | null): string | null {
@@ -60,7 +54,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
     ["Bathrooms", listing.bathrooms != null ? `${listing.bathrooms}` : null],
     ["Floor", listing.floor],
     ["Type", listing.apartmentType],
-    ["Available from", formatDate(listing.availableFrom)],
+    ["Available from", formatIsoDate(listing.availableFrom, true)],
     ["District", listing.district],
     ["Location", listing.location],
     ["Distance", formatDistance(listing.distanceMeters)],
