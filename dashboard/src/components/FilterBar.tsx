@@ -108,6 +108,15 @@ export function FilterBar({
         />
       </Field>
 
+      <Field label="Available by">
+        <input
+          type="month"
+          value={filters.availableBy}
+          onChange={(e) => set({ availableBy: e.target.value })}
+          className={FIELD}
+        />
+      </Field>
+
       {active && (
         <button
           onClick={onReset}

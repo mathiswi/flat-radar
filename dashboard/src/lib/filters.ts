@@ -9,6 +9,8 @@ export type Filters = {
   minRooms: string;
   minSize: string;
   maxSize: string;
+  /** Move-in month "YYYY-MM": keep listings available in or before this month. */
+  availableBy: string;
 };
 
 export const emptyFilters: Filters = {
@@ -19,6 +21,7 @@ export const emptyFilters: Filters = {
   minRooms: "",
   minSize: "",
   maxSize: "",
+  availableBy: "",
 };
 
 export function filtersActive(f: Filters): boolean {
@@ -51,6 +54,15 @@ export function matchesFilters(l: Listing, f: Filters): boolean {
   const maxSize = num(f.maxSize);
   if (minSize != null && (l.size == null || l.size < minSize)) return false;
   if (maxSize != null && (l.size == null || l.size > maxSize)) return false;
+
+  // "Available by" a move-in month ("YYYY-MM"): dated listings must be free in or
+  // before that month — compare the listing's year-month prefix, so a flat free on
+  // the 15th still counts for its month. Unlike the numeric bounds above, a listing
+  // with no stated date is *kept* — an unknown date usually means "sofort/nach
+  // Vereinbarung", which a mover would rather see than have hidden.
+  if (f.availableBy && l.availableFrom != null && l.availableFrom.slice(0, 7) > f.availableBy) {
+    return false;
+  }
 
   return true;
 }
