@@ -49,6 +49,7 @@ suspend fun main(args: Array<String>) {
 
         val backendClient = BackendClient(httpClient)
         val feeds = BackendFeeds(backendClient)
+        val availabilityFallback = AvailabilityExtractor.fromEnv()
         val detailFetchLimiter = Semaphore(DETAIL_FETCH_PERMITS)
 
         val configs = try {
@@ -62,13 +63,13 @@ suspend fun main(args: Array<String>) {
             exitProcess(1)
         }
 
-        println("[main] running ${configs.size} feed(s)")
+        println("[main] running ${configs.size} feed(s)${if (availabilityFallback != null) " with LLM availability fallback" else ""}")
 
         val timestamp = Clock.System.now().toEpochMilliseconds()
 
         val results = coroutineScope {
             configs.map { feed ->
-                async { processFeed(feed, timestamp, backendClient, httpClient, detailFetchLimiter) }
+                async { processFeed(feed, timestamp, backendClient, httpClient, detailFetchLimiter, availabilityFallback) }
             }.awaitAll()
         }
 
@@ -85,6 +86,7 @@ private suspend fun processFeed(
     backendClient: BackendClient,
     httpClient: HttpClient,
     detailFetchLimiter: Semaphore,
+    availabilityFallback: AvailabilityFallback?,
 ): List<dev.flatradar.shared.ApartmentAd> {
     val parser = SourceParsers.get(feed.source)
     if (parser == null) {
@@ -110,7 +112,7 @@ private suspend fun processFeed(
                             delay(Random.nextLong(DETAIL_FETCH_DELAY_RANGE.first, DETAIL_FETCH_DELAY_RANGE.last))
                             fetch(httpClient, ref.url)
                         }
-                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, ref)
+                        val ad = parser.parseDetail(detailHtml, ref.url, feed.district, timestamp, ref, availabilityFallback)
                         if (ad == null) {
                             println("[${feed.id}] skip (null): ${ref.adId} ${ref.title}")
                         } else {

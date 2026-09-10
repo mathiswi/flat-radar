@@ -1,6 +1,7 @@
 package dev.flatradar.scraper.immoscout24
 
 import dev.flatradar.scraper.AdRef
+import dev.flatradar.scraper.AvailabilityFallback
 import dev.flatradar.scraper.SourceParser
 import dev.flatradar.scraper.SwapDetector
 import dev.flatradar.shared.ApartmentAd
@@ -41,7 +42,9 @@ object ImmoscoutParser : SourceParser {
         district: String,
         timestamp: Long,
         ref: AdRef?,
+        availabilityFallback: AvailabilityFallback?,
     ): ApartmentAd? =
+        // availabilityFallback is unused: ImmoScout fills availableFrom structurally (ExposeParser).
         // lat/lon/distanceMeters come from the search-list ref, not the expose response
         // itself (see SearchListParser's KDoc), so they're merged in here.
         ExposeParser.parse(html, url, district, timestamp)?.let { ad ->

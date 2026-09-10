@@ -11,6 +11,8 @@ export type Filters = {
   maxSize: string;
   /** Move-in month "YYYY-MM": keep listings available in or before this month. */
   availableBy: string;
+  /** When true, "Available by" also excludes listings with no known move-in date. */
+  availableExact: boolean;
 };
 
 export const emptyFilters: Filters = {
@@ -22,10 +24,22 @@ export const emptyFilters: Filters = {
   minSize: "",
   maxSize: "",
   availableBy: "",
+  availableExact: false,
 };
 
 export function filtersActive(f: Filters): boolean {
-  return Object.values(f).some((v) => v !== "");
+  // availableExact is a modifier on availableBy, not a constraint on its own, so it
+  // doesn't count as "active" (and it's a boolean, not a "" sentinel like the rest).
+  return (
+    f.district !== "" ||
+    f.source !== "" ||
+    f.minRent !== "" ||
+    f.maxRent !== "" ||
+    f.minRooms !== "" ||
+    f.minSize !== "" ||
+    f.maxSize !== "" ||
+    f.availableBy !== ""
+  );
 }
 
 function num(s: string): number | null {
@@ -57,11 +71,15 @@ export function matchesFilters(l: Listing, f: Filters): boolean {
 
   // "Available by" a move-in month ("YYYY-MM"): dated listings must be free in or
   // before that month — compare the listing's year-month prefix, so a flat free on
-  // the 15th still counts for its month. Unlike the numeric bounds above, a listing
-  // with no stated date is *kept* — an unknown date usually means "sofort/nach
-  // Vereinbarung", which a mover would rather see than have hidden.
-  if (f.availableBy && l.availableFrom != null && l.availableFrom.slice(0, 7) > f.availableBy) {
-    return false;
+  // the 15th still counts for its month. A listing with no stated date is *kept* by
+  // default (an unknown date often means "sofort/nach Vereinbarung"), but the
+  // `availableExact` toggle excludes those so the filter constrains to known dates.
+  if (f.availableBy) {
+    if (l.availableFrom != null) {
+      if (l.availableFrom.slice(0, 7) > f.availableBy) return false;
+    } else if (f.availableExact) {
+      return false;
+    }
   }
 
   return true;

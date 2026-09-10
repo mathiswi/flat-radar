@@ -164,6 +164,18 @@ export function FilterBar({
               </option>
             ))}
           </select>
+          <label
+            className="ml-1 flex cursor-pointer select-none items-center gap-1.5 normal-case text-muted"
+            title="Also hide listings with no known move-in date"
+          >
+            <input
+              type="checkbox"
+              checked={filters.availableExact}
+              onChange={(e) => set({ availableExact: e.target.checked })}
+              className="h-4 w-4 accent-signal"
+            />
+            Exact
+          </label>
         </div>
       </Field>
 
