@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // \"\"' | { read -r f; case \"$f\" in .env|*/.env) printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Reading .env is blocked by a project hook — it holds secrets (e.g. GEMINI_API_KEY). Use .env.example for the schema.\"}}';; esac; }"
+          }
+        ]
+      }
+    ]
+  }
+}
