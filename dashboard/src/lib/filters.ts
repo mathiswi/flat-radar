@@ -85,33 +85,94 @@ export function matchesFilters(l: Listing, f: Filters): boolean {
   return true;
 }
 
-/** How the listing grid/table is ordered. "newest" is the default. */
-export type SortKey = "newest" | "priceAsc" | "priceDesc" | "sizeDesc";
+/** A sortable column of the listings table (and the grid/map, which share the order). */
+export type SortField =
+  | "timestamp"
+  | "totalRent"
+  | "size"
+  | "rooms"
+  | "availableFrom"
+  | "title"
+  | "location"
+  | "source";
 
-export const sortLabels: Record<SortKey, string> = {
-  newest: "Newest first",
-  priceAsc: "Price: low to high",
-  priceDesc: "Price: high to low",
-  sizeDesc: "Size: large to small",
-};
+export type SortDir = "asc" | "desc";
 
-/** Orders two nullable numbers, always sinking nulls to the bottom regardless of direction. */
-function nullsLast(a: number | null, b: number | null, cmp: (x: number, y: number) => number): number {
-  if (a == null && b == null) return 0;
-  if (a == null) return 1;
-  if (b == null) return -1;
-  return cmp(a, b);
+/** How the listings are ordered. Newest-first is the default. */
+export type Sort = { field: SortField; dir: SortDir };
+
+export const defaultSort: Sort = { field: "timestamp", dir: "desc" };
+
+/** The value a field sorts on: a number, a string (ISO date sorts chronologically), or null. */
+function sortValue(l: Listing, field: SortField): number | string | null {
+  switch (field) {
+    case "timestamp":
+      return l.timestamp;
+    case "totalRent":
+      return l.totalRent;
+    case "size":
+      return l.size;
+    case "rooms":
+      return l.rooms;
+    case "availableFrom":
+      return l.availableFrom; // "YYYY-MM-DD" — lexical order is chronological
+    case "title":
+      return l.title;
+    case "location":
+      return l.location;
+    case "source":
+      return l.source;
+  }
 }
 
-/** Comparator per sort option. Listings missing the sorted field sink to the bottom. */
-const comparators: Record<SortKey, (a: Listing, b: Listing) => number> = {
-  newest: (a, b) => b.timestamp - a.timestamp,
-  priceAsc: (a, b) => nullsLast(a.totalRent, b.totalRent, (x, y) => x - y),
-  priceDesc: (a, b) => nullsLast(a.totalRent, b.totalRent, (x, y) => y - x),
-  sizeDesc: (a, b) => nullsLast(a.size, b.size, (x, y) => y - x),
+/** Comparator for a [sort]. Nulls always sink to the bottom, regardless of direction. */
+function comparator(sort: Sort): (a: Listing, b: Listing) => number {
+  const sign = sort.dir === "asc" ? 1 : -1;
+  return (a, b) => {
+    const va = sortValue(a, sort.field);
+    const vb = sortValue(b, sort.field);
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    const cmp =
+      typeof va === "string" ? va.localeCompare(vb as string) : va - (vb as number);
+    return sign * cmp;
+  };
+}
+
+/** Returns a new array ordered by [sort], leaving the input untouched. */
+export function sortListings(list: Listing[], sort: Sort): Listing[] {
+  return [...list].sort(comparator(sort));
+}
+
+/** The presets offered by the global Sort dropdown (grid/table/map). */
+export const sortPresets: { label: string; sort: Sort }[] = [
+  { label: "Newest first", sort: { field: "timestamp", dir: "desc" } },
+  { label: "Price: low to high", sort: { field: "totalRent", dir: "asc" } },
+  { label: "Price: high to low", sort: { field: "totalRent", dir: "desc" } },
+  { label: "Size: large to small", sort: { field: "size", dir: "desc" } },
+];
+
+export function sameSort(a: Sort, b: Sort): boolean {
+  return a.field === b.field && a.dir === b.dir;
+}
+
+/** The direction a column adopts when first clicked (before any toggle). */
+const defaultDir: Record<SortField, SortDir> = {
+  timestamp: "desc",
+  totalRent: "asc",
+  size: "desc",
+  rooms: "desc",
+  availableFrom: "asc",
+  title: "asc",
+  location: "asc",
+  source: "asc",
 };
 
-/** Returns a new array ordered by [key], leaving the input untouched. */
-export function sortListings(list: Listing[], key: SortKey): Listing[] {
-  return [...list].sort(comparators[key]);
+/** Header-click logic: flip direction if [field] is already active, else switch to it. */
+export function nextSort(current: Sort, field: SortField): Sort {
+  if (current.field === field) {
+    return { field, dir: current.dir === "asc" ? "desc" : "asc" };
+  }
+  return { field, dir: defaultDir[field] };
 }

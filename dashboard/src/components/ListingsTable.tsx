@@ -1,15 +1,33 @@
 "use client";
 
 import { RelativeTime } from "@/components/RelativeTime";
+import type { Sort, SortField } from "@/lib/filters";
 import { formatIsoDate, isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
+
+/** Header cells; those with a `field` sort on click. Status (no field) is inert. */
+const COLUMNS: { label: string; field?: SortField; className: string }[] = [
+  { label: "", className: "py-3 pl-4 pr-2" },
+  { label: "Title", field: "title", className: "px-3 py-3" },
+  { label: "Rent (warm)", field: "totalRent", className: "px-3 py-3" },
+  { label: "Size", field: "size", className: "px-3 py-3" },
+  { label: "Rooms", field: "rooms", className: "px-3 py-3" },
+  { label: "Frei ab", field: "availableFrom", className: "px-3 py-3" },
+  { label: "Location", field: "location", className: "px-3 py-3" },
+  { label: "Source", field: "source", className: "px-3 py-3" },
+  { label: "Added", field: "timestamp", className: "px-3 py-3 pr-4" },
+];
 
 export function ListingsTable({
   listings,
   onSelect,
+  sort,
+  onSortField,
 }: {
   listings: Listing[];
   onSelect: (listing: Listing) => void;
+  sort: Sort;
+  onSortField: (field: SortField) => void;
 }) {
   if (listings.length === 0) {
     return (
@@ -24,15 +42,30 @@ export function ListingsTable({
       <table className="w-full text-left text-sm">
         <thead className="border-b-2 border-border bg-surface text-xs font-semibold uppercase tracking-wide text-muted">
           <tr>
-            <th className="py-3 pl-4 pr-2" aria-label="Status"></th>
-            <th className="px-3 py-3">Title</th>
-            <th className="px-3 py-3">Rent (warm)</th>
-            <th className="px-3 py-3">Size</th>
-            <th className="px-3 py-3">Rooms</th>
-            <th className="px-3 py-3">Frei ab</th>
-            <th className="px-3 py-3">Location</th>
-            <th className="px-3 py-3">Source</th>
-            <th className="px-3 py-3 pr-4">Added</th>
+            {COLUMNS.map((col) => {
+              if (!col.field) {
+                return <th key="status" className={col.className} aria-label="Status" />;
+              }
+              const active = sort.field === col.field;
+              return (
+                <th
+                  key={col.field}
+                  className={col.className}
+                  aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSortField(col.field!)}
+                    className="flex items-center gap-1 uppercase tracking-wide transition-colors hover:text-text"
+                  >
+                    {col.label}
+                    <span aria-hidden="true" className={active ? "text-signal" : "invisible"}>
+                      {active && sort.dir === "asc" ? "▲" : "▼"}
+                    </span>
+                  </button>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
