@@ -21,13 +21,17 @@ const ListingsMap = dynamic(
   },
 );
 import {
+  defaultSort,
   emptyFilters,
   filtersActive,
   matchesFilters,
-  sortLabels,
+  nextSort,
+  sameSort,
   sortListings,
+  sortPresets,
   type Filters,
-  type SortKey,
+  type Sort,
+  type SortField,
 } from "@/lib/filters";
 import { isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
@@ -35,7 +39,6 @@ import type { Listing } from "@/lib/types";
 type View = "grid" | "table" | "map";
 
 const PAGE_SIZE = 24;
-const sortKeys = Object.keys(sortLabels) as SortKey[];
 
 export function ViewToggle({
   listings,
@@ -46,7 +49,7 @@ export function ViewToggle({
 }) {
   const [view, setView] = useState<View>("grid");
   const [hideDelisted, setHideDelisted] = useState(true);
-  const [sort, setSort] = useState<SortKey>("newest");
+  const [sort, setSort] = useState<Sort>(defaultSort);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Listing | null>(null);
@@ -78,10 +81,13 @@ export function ViewToggle({
     setFilters(f);
     setPage(1);
   };
-  const applySort = (key: SortKey) => {
-    setSort(key);
+  const applySort = (next: Sort) => {
+    setSort(next);
     setPage(1);
   };
+  // The dropdown reflects a matching preset, or a "Custom" slot when a table header
+  // set a sort no preset covers (e.g. Rooms ascending).
+  const activePreset = sortPresets.findIndex((p) => sameSort(p.sort, sort));
   const toggleHide = (checked: boolean) => {
     setHideDelisted(checked);
     setPage(1);
@@ -133,13 +139,18 @@ export function ViewToggle({
           <label className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
             Sort
             <select
-              value={sort}
-              onChange={(e) => applySort(e.target.value as SortKey)}
+              value={activePreset}
+              onChange={(e) => applySort(sortPresets[Number(e.target.value)].sort)}
               className="border border-border bg-surface px-2 py-1 text-sm font-normal normal-case tracking-normal text-text focus:border-signal focus:outline-none"
             >
-              {sortKeys.map((key) => (
-                <option key={key} value={key}>
-                  {sortLabels[key]}
+              {activePreset === -1 && (
+                <option value={-1} disabled>
+                  Custom
+                </option>
+              )}
+              {sortPresets.map((preset, i) => (
+                <option key={preset.label} value={i}>
+                  {preset.label}
                 </option>
               ))}
             </select>
@@ -155,7 +166,12 @@ export function ViewToggle({
             <ListingsGrid listings={pageItems} onSelect={setSelected} />
           </div>
           <div className={view === "table" ? "" : "hidden"}>
-            <ListingsTable listings={pageItems} onSelect={setSelected} />
+            <ListingsTable
+              listings={pageItems}
+              onSelect={setSelected}
+              sort={sort}
+              onSortField={(field: SortField) => applySort(nextSort(sort, field))}
+            />
           </div>
           <Pagination
             page={safePage}
