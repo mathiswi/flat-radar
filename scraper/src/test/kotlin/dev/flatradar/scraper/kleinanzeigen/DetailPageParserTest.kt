@@ -60,7 +60,7 @@ class DetailPageParserTest {
         assertTrue(encoded.contains("\"totalRent\":1087"))
     }
 
-    // --- availableFrom fallback chain (structured -> text scan -> LLM) ---
+    // --- availableFrom: structured field wins; LLM fallback only when the field is absent ---
 
     private class SpyFallback(private val date: LocalDate?) : AvailabilityFallback {
         var calls = 0
@@ -70,57 +70,46 @@ class DetailPageParserTest {
         }
     }
 
-    private fun html(description: String) = """
+    private fun html(description: String, availableField: String? = null) = """
         <html><body>
           <h1 id="viewad-title">Helle 2-Zimmer-Wohnung</h1>
           <div id="viewad-price">1.200 €</div>
           <input name="adId" value="123456789"/>
+          <div id="viewad-details"><ul>
+            ${availableField?.let { "<li class=\"addetailslist--detail\">Verfügbar ab<span class=\"addetailslist--detail--value\">$it</span></li>" } ?: ""}
+          </ul></div>
           <div id="viewad-description-text">$description</div>
         </body></html>
     """.trimIndent()
 
     @Test
-    fun text_scan_fills_date_and_llm_is_not_called() = runBlocking {
-        // Concrete date in the description prose (no structured "Verfügbar ab" row):
-        // the cheap deterministic scan resolves it, so the LLM must not be invoked.
-        val spy = SpyFallback(LocalDate(2099, 1, 1))
+    fun llm_fallback_fills_date_when_field_absent() = runBlocking {
+        // No structured "Verfügbar ab" row -> the LLM reads the description and generalizes.
+        val spy = SpyFallback(LocalDate(2026, 10, 1))
         val ad = DetailPageParser.parse(
             html("Tolle Wohnung. Verfügbar ab: 01.10.2026. Frisch saniert."),
             SOME_URL, "Barmbek", now, spy,
         )
         assertNotNull(ad)
         assertEquals(LocalDate(2026, 10, 1), ad?.availableFrom)
-        assertEquals(0, spy.calls)
-    }
-
-    @Test
-    fun llm_fallback_fills_date_when_text_scan_cannot() = runBlocking {
-        // An availability *signal* ("frei ab") but no parseable date -> LLM last resort runs.
-        val spy = SpyFallback(LocalDate(2026, 12, 1))
-        val ad = DetailPageParser.parse(
-            html("Schöne Wohnung, frei ab nach Vereinbarung."),
-            SOME_URL, "Barmbek", now, spy,
-        )
-        assertNotNull(ad)
-        assertEquals(LocalDate(2026, 12, 1), ad?.availableFrom)
         assertEquals(1, spy.calls)
     }
 
     @Test
-    fun llm_is_not_called_without_any_availability_signal() = runBlocking {
-        // No availability wording at all -> don't spend an LLM call; availableFrom stays null.
-        val spy = SpyFallback(LocalDate(2026, 12, 1))
+    fun llm_is_not_called_when_field_has_a_value() = runBlocking {
+        // The structured field is the trusted source; a present value is never second-guessed.
+        val spy = SpyFallback(LocalDate(2099, 1, 1))
         val ad = DetailPageParser.parse(
-            html("Schöne Wohnung mit Balkon und Einbauküche."),
+            html("Verfügbar ab: 01.10.2026 laut Beschreibung.", availableField = "Dezember 2026"),
             SOME_URL, "Barmbek", now, spy,
         )
         assertNotNull(ad)
-        assertNull(ad?.availableFrom)
+        assertEquals(LocalDate(2026, 12, 1), ad?.availableFrom)
         assertEquals(0, spy.calls)
     }
 
     @Test
-    fun no_fallback_configured_leaves_date_null() = runBlocking {
+    fun no_fallback_configured_leaves_date_null_when_field_absent() = runBlocking {
         val ad = DetailPageParser.parse(
             html("Schöne Wohnung, frei ab nach Vereinbarung."),
             SOME_URL, "Barmbek", now, null,

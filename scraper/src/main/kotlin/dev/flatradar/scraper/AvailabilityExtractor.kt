@@ -79,17 +79,21 @@ class AvailabilityExtractor private constructor(
         }
 
         internal fun buildPrompt(description: String, today: LocalDate): String = """
-            You extract the move-in date ("Verfügbar ab" / "frei ab" / "bezugsfrei ab") from
-            a German real-estate ad description. Today's date is $today.
+            You extract the move-in date ("Verfügbar ab" / "frei ab" / "bezugsfrei ab" /
+            "beziehbar ab" / "Bezug") from a German real-estate ad description. Today's date
+            is $today.
 
-            Rules:
-            - Output the date as an ISO string "YYYY-MM-DD".
-            - A concrete date -> that date (e.g. "01.10.2026", "1.10.26", "1. Oktober 2026" -> "2026-10-01").
-            - A bare month with no day ("frei ab Dezember") -> the 1st of the next occurrence of
-              that month on or after today.
-            - "sofort" / "ab sofort" / "sofort beziehbar" / "sofort verfügbar" -> today's date ($today).
-            - If no move-in date is stated at all (e.g. "auf Anfrage", or the text never mentions
-              availability), output null.
+            Rules — output the date as an ISO string "YYYY-MM-DD":
+            - Concrete date -> that date. "01.10.2026", "1.10.26", "1. Oktober 2026" -> "2026-10-01".
+            - Bare month, no day ("frei ab Dezember", "ab Oktober") -> the 1st of the next
+              occurrence of that month on or after today.
+            - Quarter / season ("ab Q4 2026", "ab Herbst 2026") -> the 1st of the first month
+              of that period.
+            - "Mitte/Ende <Monat>" -> the 15th / last day of that month; "Anfang <Monat>" -> the 1st.
+            - "sofort" / "ab sofort" / "sofort beziehbar" / "ab heute" / "kurzfristig" -> today ($today).
+            - A range or "ab <date>" -> the earliest (start) date.
+            - "nach Vereinbarung" / "nach Absprache" / "auf Anfrage" with no concrete date, or no
+              move-in date mentioned anywhere -> null. Never guess.
             - Reply with JSON ONLY, no explanations.
 
             Response schema:
