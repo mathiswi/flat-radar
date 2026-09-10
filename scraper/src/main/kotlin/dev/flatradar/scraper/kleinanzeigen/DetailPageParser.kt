@@ -2,9 +2,6 @@ package dev.flatradar.scraper.kleinanzeigen
 
 import dev.flatradar.scraper.AvailabilityFallback
 import dev.flatradar.shared.ApartmentAd
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jsoup.Jsoup
 
 object DetailPageParser {
@@ -30,16 +27,14 @@ object DetailPageParser {
      *   2. #viewad-price headline fills totalRent only as last resort (its meaning is
      *      ambiguous - Kalt vs Warm vs VB). "Auf Anfrage" -> stays null.
      *
-     * Move-in date ("Verfügbar ab") strategy:
-     *   1. Structured attribute row (unchanged; the primary, always-trusted source).
-     *   2. Cheap deterministic scan of the description for a date after an availability
-     *      keyword (e.g. "Verfügbar ab: 01.10.2026") — no network.
-     *   3. LLM [availabilityFallback] as a last resort, and only when the description
-     *      actually mentions availability but steps 1-2 couldn't pin a date down.
+     * Move-in date ("Verfügbar ab"): the structured attribute row is the trusted source.
+     * The LLM [availabilityFallback] is consulted ONLY when that row is absent/blank — it
+     * reads the free-text description and generalizes across phrasings (concrete dates,
+     * bare months, "ab sofort", "nach Vereinbarung", ranges). It is skipped entirely when
+     * the field has a value or when [availabilityFallback] is null.
      *
      * [timestamp] is supplied by the caller so the parser is a pure function of its
-     * inputs (no System.currentTimeMillis inside, no surprise in tests); it also anchors
-     * "sofort" -> today. The LLM step is skipped entirely when [availabilityFallback] is null.
+     * inputs (no System.currentTimeMillis inside, no surprise in tests).
      */
     suspend fun parse(
         html: String,
@@ -83,15 +78,14 @@ object DetailPageParser {
         val apartmentType = attrs[AttrKeys.WOHNUNGSTYP]?.takeIf { it.isNotBlank() }
         val deposit = listOf(AttrKeys.KAUTION_GENOSS, AttrKeys.KAUTION).firstNotNullOfOrNull { attrs[it] }
             ?.let { KleinanzeigenFormats.parseEuros(it) }
-        val today = Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.of("Europe/Berlin")).date
-        val availableFrom = attrs[AttrKeys.VERFUEGBAR_AB]?.takeIf { it.isNotBlank() }
-            ?.let { KleinanzeigenFormats.parseAvailableFrom(it) }
-            ?: description?.takeIf { it.isNotBlank() }?.let { desc ->
-                KleinanzeigenFormats.parseAvailabilityFromText(desc, today)
-                    ?: availabilityFallback
-                        ?.takeIf { KleinanzeigenFormats.hasAvailabilitySignal(desc) }
-                        ?.extract(desc)
-            }
+        // Structured field wins whenever it has a value; the LLM fallback is consulted
+        // only when that field is absent/blank (never to second-guess a present value).
+        val availableFromField = attrs[AttrKeys.VERFUEGBAR_AB]?.takeIf { it.isNotBlank() }
+        val availableFrom = if (availableFromField != null) {
+            KleinanzeigenFormats.parseAvailableFrom(availableFromField)
+        } else {
+            description?.takeIf { it.isNotBlank() }?.let { availabilityFallback?.extract(it) }
+        }
 
         // --- Location ---
         val location = doc.selectFirst(Selectors.LOCALITY)?.text()?.trim() ?: ""
