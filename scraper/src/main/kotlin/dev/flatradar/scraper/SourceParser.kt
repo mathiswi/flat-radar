@@ -39,6 +39,10 @@ interface SourceParser {
      * existing/simple call sites don't need it. immoscout24 uses it to carry
      * `lat`/`lon`/`distanceMeters` from the search-list response into the final
      * [ApartmentAd], since the detail response doesn't reliably repeat that data.
+     *
+     * [availabilityFallback] is an optional LLM last-resort for the move-in date when a
+     * source can't get it structurally (kleinanzeigen only; `null` disables it). Sources
+     * with structured availability (immoscout24) ignore it.
      */
     suspend fun parseDetail(
         html: String,
@@ -46,6 +50,7 @@ interface SourceParser {
         district: String,
         timestamp: Long,
         ref: AdRef? = null,
+        availabilityFallback: AvailabilityFallback? = null,
     ): ApartmentAd?
 }
 

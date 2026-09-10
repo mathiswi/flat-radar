@@ -56,10 +56,61 @@ class KleinanzeigenFormatsTest {
 
     @Test
     fun parseAvailableFrom_unknown_format_returns_null() {
-        // The current implementation does not parse "01.08.2026" - lock that
+        // The structured-attr parser does not parse "01.08.2026" - lock that
         // behaviour so a future extension is a deliberate test change, not a
-        // silent drift.
+        // silent drift. (Numeric dates in the *description* are handled by
+        // parseAvailabilityFromText instead.)
         assertNull(KleinanzeigenFormats.parseAvailableFrom("01.08.2026"))
         assertNull(KleinanzeigenFormats.parseAvailableFrom("negotiable"))
+    }
+
+    private val today = LocalDate(2026, 9, 11)
+
+    @Test
+    fun parseAvailabilityFromText_numeric_date_after_keyword() {
+        assertEquals(
+            LocalDate(2026, 10, 1),
+            KleinanzeigenFormats.parseAvailabilityFromText(
+                "…schöne Wohnung.\n\nWeitere Angaben\n• Verfügbar ab: 01.10.2026\n• saniert", today,
+            ),
+        )
+        assertEquals(
+            LocalDate(2026, 10, 1),
+            KleinanzeigenFormats.parseAvailabilityFromText("Frei ab 1.10.26", today),
+        )
+    }
+
+    @Test
+    fun parseAvailabilityFromText_month_name_forms() {
+        assertEquals(
+            LocalDate(2026, 10, 1),
+            KleinanzeigenFormats.parseAvailabilityFromText("Bezug ab dem 1. Oktober 2026", today),
+        )
+        assertEquals(
+            LocalDate(2026, 12, 1),
+            KleinanzeigenFormats.parseAvailabilityFromText("Verfügbar ab Dezember 2026", today),
+        )
+    }
+
+    @Test
+    fun parseAvailabilityFromText_sofort_resolves_to_today() {
+        assertEquals(today, KleinanzeigenFormats.parseAvailabilityFromText("Wohnung ab sofort frei", today))
+        assertEquals(today, KleinanzeigenFormats.parseAvailabilityFromText("Verfügbar ab: sofort", today))
+    }
+
+    @Test
+    fun parseAvailabilityFromText_ignores_unrelated_dates() {
+        // A date not tied to an availability keyword must not be mistaken for the move-in date.
+        assertNull(
+            KleinanzeigenFormats.parseAvailabilityFromText("Baujahr 1998, letzte Sanierung 01.03.2020.", today),
+        )
+        assertNull(KleinanzeigenFormats.parseAvailabilityFromText("frei ab nach Vereinbarung", today))
+    }
+
+    @Test
+    fun hasAvailabilitySignal_detects_wording() {
+        assertEquals(true, KleinanzeigenFormats.hasAvailabilitySignal("frei ab nach Vereinbarung"))
+        assertEquals(true, KleinanzeigenFormats.hasAvailabilitySignal("ab sofort beziehbar"))
+        assertEquals(false, KleinanzeigenFormats.hasAvailabilitySignal("Schöne Wohnung mit Balkon"))
     }
 }

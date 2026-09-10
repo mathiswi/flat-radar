@@ -1,7 +1,7 @@
 "use client";
 
 import { RelativeTime } from "@/components/RelativeTime";
-import { isNew } from "@/lib/time";
+import { formatIsoDate, isNew } from "@/lib/time";
 import type { Listing } from "@/lib/types";
 
 export function ListingsTable({
@@ -29,6 +29,7 @@ export function ListingsTable({
             <th className="px-3 py-3">Rent (warm)</th>
             <th className="px-3 py-3">Size</th>
             <th className="px-3 py-3">Rooms</th>
+            <th className="px-3 py-3">Frei ab</th>
             <th className="px-3 py-3">Location</th>
             <th className="px-3 py-3">Source</th>
             <th className="px-3 py-3 pr-4">Added</th>
@@ -80,6 +81,7 @@ export function ListingsTable({
                   {listing.size != null ? `${listing.size} m²` : "—"}
                 </td>
                 <td className="tnum px-3 py-3">{listing.rooms ?? "—"}</td>
+                <td className="tnum px-3 py-3">{formatIsoDate(listing.availableFrom) ?? "—"}</td>
                 <td className="px-3 py-3">{listing.district ?? listing.location}</td>
                 <td className="px-3 py-3">
                   <span className="bg-surface-2 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted">
