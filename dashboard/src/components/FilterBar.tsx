@@ -1,10 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import type { Filters } from "@/lib/filters";
 
 const FIELD =
   "border border-border bg-surface px-2 py-1 text-sm text-text focus:border-signal focus:outline-none";
 const NUM = `${FIELD} w-20`;
+
+const MONTHS: [string, string][] = [
+  ["01", "Jan"], ["02", "Feb"], ["03", "Mar"], ["04", "Apr"], ["05", "May"], ["06", "Jun"],
+  ["07", "Jul"], ["08", "Aug"], ["09", "Sep"], ["10", "Oct"], ["11", "Nov"], ["12", "Dec"],
+];
 
 export function FilterBar({
   filters,
@@ -20,6 +26,28 @@ export function FilterBar({
   active: boolean;
 }) {
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
+
+  // "Available by" is stored as "YYYY-MM". The two dropdowns hold their own state so a
+  // half-made selection stays visible; the filter only applies once both are chosen.
+  const [availMonth, setAvailMonth] = useState(() =>
+    filters.availableBy ? filters.availableBy.slice(5, 7) : "",
+  );
+  const [availYear, setAvailYear] = useState(() =>
+    filters.availableBy ? filters.availableBy.slice(0, 4) : "",
+  );
+  const thisYear = new Date().getFullYear();
+  const years = [thisYear, thisYear + 1, thisYear + 2];
+
+  const applyAvail = (month: string, year: string) => {
+    setAvailMonth(month);
+    setAvailYear(year);
+    set({ availableBy: month && year ? `${year}-${month}` : "" });
+  };
+  const resetAll = () => {
+    setAvailMonth("");
+    setAvailYear("");
+    onReset();
+  };
 
   return (
     <div className="mb-4 flex flex-wrap items-end gap-x-4 gap-y-3 border-b border-line pb-4">
@@ -109,17 +137,39 @@ export function FilterBar({
       </Field>
 
       <Field label="Available by">
-        <input
-          type="month"
-          value={filters.availableBy}
-          onChange={(e) => set({ availableBy: e.target.value })}
-          className={FIELD}
-        />
+        <div className="flex items-center gap-1">
+          <select
+            value={availMonth}
+            onChange={(e) => applyAvail(e.target.value, availYear)}
+            className={FIELD}
+            aria-label="Available by month"
+          >
+            <option value="">Month</option>
+            {MONTHS.map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <select
+            value={availYear}
+            onChange={(e) => applyAvail(availMonth, e.target.value)}
+            className={FIELD}
+            aria-label="Available by year"
+          >
+            <option value="">Year</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
       </Field>
 
       {active && (
         <button
-          onClick={onReset}
+          onClick={resetAll}
           className="border border-border px-3 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors hover:bg-border hover:text-bg"
         >
           Reset
