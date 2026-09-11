@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/V8__add_feeds.yaml
   - include:
       file: db/changelog/V9__seed_feeds.yaml
+  - include:
+      file: db/changelog/V10__add_fake.yaml

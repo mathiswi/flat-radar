@@ -39,5 +39,10 @@ object ListingsTable : Table("listings") {
     val missedRuns = integer("missed_runs").default(0)
     val delistedAt = timestampWithTimeZone("delisted_at").nullable()
 
+    // User-set "fake" flag (V10). Toggled from the dashboard to hide scam ads;
+    // unlike delistedAt this is never computed by the scraper, and the ingest
+    // upsert excludes it so a re-scrape can't clear it.
+    val fake = bool("fake").default(false)
+
     override val primaryKey = PrimaryKey(id)
 }

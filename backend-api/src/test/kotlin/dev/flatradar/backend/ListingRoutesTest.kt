@@ -2,6 +2,7 @@ package dev.flatradar.backend
 
 import dev.flatradar.shared.ApartmentAd
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -161,6 +162,40 @@ class ListingRoutesTest {
         assertEquals(null, stored.lat)
         assertEquals(null, stored.lon)
         assertEquals(null, stored.distanceMeters)
+    }
+
+    @Test
+    fun patching_fake_flips_the_flag_and_survives_a_read() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        client.post("/api/v1/listings") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(ApartmentAd.serializer(), sampleAd("scam")))
+        }
+
+        val patched = client.patch("/api/v1/listings/scam") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"fake":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, patched.status)
+        assertEquals("updated", json.decodeFromString<StatusResponse>(patched.bodyAsText()).status)
+
+        val listings = json.decodeFromString(
+            ListSerializer(ApartmentAd.serializer()),
+            client.get("/api/v1/listings").bodyAsText(),
+        )
+        assertTrue(listings.first { it.id == "scam" }.fake)
+    }
+
+    @Test
+    fun patching_fake_on_an_unknown_id_is_not_found() = testApplication {
+        application { module(freshDataSource(), TEST_CHANGELOG) }
+
+        val response = client.patch("/api/v1/listings/ghost") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"fake":true}""")
+        }
+        assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
     private companion object {

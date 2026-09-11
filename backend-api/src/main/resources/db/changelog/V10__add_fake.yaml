@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: V10__add_fake
+      author: mathiswi
+      comment: >
+        User-set "fake" flag. Unlike delisted_at (backend-computed), this is
+        toggled by the operator from the dashboard to hide scam/fake ads. Set
+        via PATCH /api/v1/listings/{id}; excluded from the ingest upsert so a
+        re-scrape can't clear it.
+      changes:
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: fake
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

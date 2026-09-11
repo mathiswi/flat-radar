@@ -102,6 +102,48 @@ class ListingRepositoryTest {
         assertTrue(repository.fetchUnsentOutbox(limit = 10, maxAttempts = 5).isEmpty())
     }
 
+    // --- Fake flag (setFake) ---
+
+    private fun ListingRepository.fakeOf(id: String): Boolean =
+        findAll().first { it.id == id }.fake
+
+    @Test
+    fun a_new_listing_is_not_fake_by_default() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("plain"))
+        assertEquals(false, repository.fakeOf("plain"))
+    }
+
+    @Test
+    fun set_fake_toggles_the_flag_and_reports_whether_a_row_was_hit() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("scam"))
+
+        assertTrue(repository.setFake("scam", true))
+        assertEquals(true, repository.fakeOf("scam"))
+
+        assertTrue(repository.setFake("scam", false))
+        assertEquals(false, repository.fakeOf("scam"))
+    }
+
+    @Test
+    fun set_fake_on_an_unknown_id_updates_nothing() {
+        val repository = freshRepository()
+        assertEquals(false, repository.setFake("nope", true))
+    }
+
+    @Test
+    fun re_ingesting_a_listing_preserves_a_user_set_fake_flag() {
+        val repository = freshRepository()
+        repository.upsert(sampleAd("keep-fake"))
+        repository.setFake("keep-fake", true)
+
+        // A re-scrape upserts the same id; the user's flag must survive (onUpdateExclude).
+        repository.upsert(sampleAd("keep-fake"))
+
+        assertEquals(true, repository.fakeOf("keep-fake"))
+    }
+
     // --- Delisting reconcile (reconcileSeen) ---
 
     private fun ListingRepository.delistedAtOf(id: String): Long? =

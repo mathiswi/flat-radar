@@ -19,7 +19,15 @@ function formatDistance(m: number | null): string | null {
 }
 
 /** Full-detail modal for one listing. Rendered only while a listing is selected. */
-export function ListingDetail({ listing, onClose }: { listing: Listing; onClose: () => void }) {
+export function ListingDetail({
+  listing,
+  onClose,
+  onToggleFake,
+}: {
+  listing: Listing;
+  onClose: () => void;
+  onToggleFake: (listing: Listing) => void;
+}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -38,6 +46,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
   if (!mounted) return null;
 
   const delisted = listing.delistedAt != null;
+  const isFake = listing.fake;
   const fresh = !delisted && isNew(listing.timestamp);
 
   const rent: [string, string | null][] = [
@@ -83,7 +92,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
           </svg>
         </button>
 
-        <Gallery listing={listing} delisted={delisted} />
+        <Gallery listing={listing} dim={delisted || isFake} />
 
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -94,6 +103,9 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
             )}
             {delisted && (
               <span className="bg-border px-2 py-0.5 font-bold uppercase tracking-wide text-bg">Entfernt</span>
+            )}
+            {isFake && (
+              <span className="bg-danger px-2 py-0.5 font-bold uppercase tracking-wide text-on-signal">Fake</span>
             )}
             <span className="bg-surface-2 px-2 py-0.5 font-semibold uppercase tracking-wide text-muted">
               {listing.source}
@@ -131,17 +143,30 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
               ))}
           </dl>
 
-          <a
-            href={listing.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 bg-signal px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-on-signal transition-transform hover:-translate-y-0.5"
-          >
-            Open on {listing.source}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 17L17 7M17 7H8M17 7v9" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <a
+              href={listing.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-signal px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-on-signal transition-transform hover:-translate-y-0.5"
+            >
+              Open on {listing.source}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M7 17L17 7M17 7H8M17 7v9" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+            <button
+              type="button"
+              onClick={() => onToggleFake(listing)}
+              className={`inline-flex items-center gap-2 border-2 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide transition-colors ${
+                isFake
+                  ? "border-danger bg-danger text-on-signal hover:brightness-110"
+                  : "border-border text-text hover:bg-danger hover:border-danger hover:text-on-signal"
+              }`}
+            >
+              {isFake ? "Unmark fake" : "Mark as fake"}
+            </button>
+          </div>
         </div>
       </div>
     </div>,
@@ -150,7 +175,7 @@ export function ListingDetail({ listing, onClose }: { listing: Listing; onClose:
 }
 
 /** Lead image with a clickable thumbnail strip that swaps the active image. */
-function Gallery({ listing, delisted }: { listing: Listing; delisted: boolean }) {
+function Gallery({ listing, dim }: { listing: Listing; dim: boolean }) {
   const images: string[] = [];
   for (const u of [listing.thumbnailUrl, ...(listing.imageUrls ?? [])]) {
     if (u && !images.includes(u)) images.push(u);
@@ -181,7 +206,7 @@ function Gallery({ listing, delisted }: { listing: Listing; delisted: boolean })
           src={images[safeActive]}
           alt={listing.title}
           fill
-          className={`object-cover ${delisted ? "grayscale" : ""}`}
+          className={`object-cover ${dim ? "grayscale" : ""}`}
           sizes="(max-width: 768px) 100vw, 768px"
           priority
         />
