@@ -237,3 +237,18 @@ databaseChangeLog:
                   defaultValueBoolean: true
                   constraints:
                     nullable: false
+  - changeSet:
+      id: V10__add_fake
+      author: mathiswi
+      changes:
+        # Mirrors db/changelog/V10__add_fake.yaml. (V9 seeds feeds - prod-only, no
+        # mirror here.)
+        - addColumn:
+            tableName: listings
+            columns:
+              - column:
+                  name: fake
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

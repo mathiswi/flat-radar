@@ -55,7 +55,8 @@ class ListingRepository(dataSource: DataSource) {
 
         ListingsTable.upsert(
             onUpdate = { it[ListingsTable.lastSeen] = OffsetDateTime.now(ZoneOffset.UTC) },
-            onUpdateExclude = listOf(ListingsTable.firstSeen),
+            // firstSeen is set once; fake is user-set, so a re-ingest must not clear it.
+            onUpdateExclude = listOf(ListingsTable.firstSeen, ListingsTable.fake),
         ) {
             it[id] = ad.id
             it[title] = ad.title
@@ -82,6 +83,7 @@ class ListingRepository(dataSource: DataSource) {
             it[imageUrls] = imageUrlsJson.encodeToString(ListSerializer(serializer<String>()), ad.imageUrls)
             it[this.firstSeen] = firstSeen
             it[this.lastSeen] = now
+            it[fake] = ad.fake
         }
 
         // Same transaction as the upsert above: either both the listing and its
@@ -143,6 +145,17 @@ class ListingRepository(dataSource: DataSource) {
 
     fun findAll(): List<ApartmentAd> = transaction(db) {
         ListingsTable.selectAll().map(::rowToAd)
+    }
+
+    /**
+     * Sets the user-controlled [ListingsTable.fake] flag for one listing. Returns
+     * true if a row was updated, false if no listing had this id - so a toggle on
+     * an unknown id is a 404, never a silent no-op that looks like success.
+     */
+    fun setFake(id: String, fake: Boolean): Boolean = transaction(db) {
+        ListingsTable.update({ ListingsTable.id eq id }) {
+            it[ListingsTable.fake] = fake
+        } > 0
     }
 
     fun countAll(): Int = transaction(db) {
@@ -231,6 +244,7 @@ class ListingRepository(dataSource: DataSource) {
         imageUrls = imageUrlsJson.decodeFromString(ListSerializer(serializer<String>()), row[ListingsTable.imageUrls]),
         timestamp = row[ListingsTable.firstSeen].toInstant().toEpochMilli(),
         delistedAt = row[ListingsTable.delistedAt]?.toInstant()?.toEpochMilli(),
+        fake = row[ListingsTable.fake],
     )
 
     private companion object {

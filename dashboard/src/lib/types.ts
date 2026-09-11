@@ -39,4 +39,6 @@ export interface Listing {
   timestamp: number;
   /** Epoch millis when detected as removed from its feed, else null. */
   delistedAt: number | null;
+  /** User-set flag marking the ad as fake/scam (toggled from the dashboard). */
+  fake: boolean;
 }

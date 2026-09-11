@@ -21,11 +21,13 @@ const COLUMNS: { label: string; field?: SortField; className: string }[] = [
 export function ListingsTable({
   listings,
   onSelect,
+  onToggleFake,
   sort,
   onSortField,
 }: {
   listings: Listing[];
   onSelect: (listing: Listing) => void;
+  onToggleFake: (listing: Listing) => void;
   sort: Sort;
   onSortField: (field: SortField) => void;
 }) {
@@ -71,22 +73,39 @@ export function ListingsTable({
         <tbody>
           {listings.map((listing) => {
             const delisted = listing.delistedAt != null;
+            const fake = listing.fake;
             const fresh = !delisted && isNew(listing.timestamp);
             return (
               <tr
                 key={listing.id}
                 className={`border-b border-line last:border-0 hover:bg-surface-2 ${
-                  delisted ? "text-removed" : "text-text"
+                  delisted || fake ? "text-removed" : "text-text"
                 }`}
               >
                 <td className="py-3 pl-4 pr-2">
-                  {fresh && (
-                    <span
-                      className="block h-2.5 w-2.5 bg-signal"
-                      aria-label="New today"
-                      title="New today"
-                    />
-                  )}
+                  <div className="flex items-center gap-2">
+                    {fresh && (
+                      <span
+                        className="block h-2.5 w-2.5 shrink-0 bg-signal"
+                        aria-label="New today"
+                        title="New today"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onToggleFake(listing)}
+                      aria-pressed={fake}
+                      aria-label={fake ? "Unmark fake" : "Mark as fake"}
+                      title={fake ? "Unmark fake" : "Mark as fake"}
+                      className={`shrink-0 transition-colors ${
+                        fake ? "text-danger" : "text-muted/40 hover:text-danger"
+                      }`}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill={fake ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                        <path d="M4 21V4h13l-2 4 2 4H4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
                 <td className="max-w-xs px-3 py-3">
                   <button
@@ -96,11 +115,18 @@ export function ListingsTable({
                   >
                     {listing.title}
                   </button>
-                  {delisted && (
-                    <span className="mt-0.5 inline-block text-xs uppercase tracking-wide text-removed">
-                      Entfernt
-                    </span>
-                  )}
+                  <span className="mt-0.5 flex flex-wrap gap-1.5">
+                    {delisted && (
+                      <span className="inline-block text-xs uppercase tracking-wide text-removed">
+                        Entfernt
+                      </span>
+                    )}
+                    {fake && (
+                      <span className="inline-block bg-danger px-1.5 text-xs font-bold uppercase tracking-wide text-on-signal">
+                        Fake
+                      </span>
+                    )}
+                  </span>
                 </td>
                 <td className="px-3 py-3">
                   <span className="tnum font-display font-bold">

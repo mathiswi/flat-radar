@@ -49,10 +49,36 @@ export function ViewToggle({
 }) {
   const [view, setView] = useState<View>("grid");
   const [hideDelisted, setHideDelisted] = useState(true);
+  const [hideFakes, setHideFakes] = useState(false);
   const [sort, setSort] = useState<Sort>(defaultSort);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Listing | null>(null);
+  // Optimistic overrides for the user-set `fake` flag, keyed by listing id. Kept
+  // separate from `listings` so a toggle reflects instantly and survives the
+  // AutoRefresh re-render that hands this component a fresh `listings` prop.
+  const [fakeOverrides, setFakeOverrides] = useState<Record<string, boolean>>({});
+
+  const items = listings.map((l) =>
+    l.id in fakeOverrides ? { ...l, fake: fakeOverrides[l.id] } : l,
+  );
+
+  // Toggle a listing's fake flag: apply the override immediately, persist via the
+  // backend, and roll back if the write fails so the UI never lies about state.
+  const toggleFake = async (listing: Listing) => {
+    const next = !listing.fake;
+    setFakeOverrides((o) => ({ ...o, [listing.id]: next }));
+    try {
+      const res = await fetch(`/api/listings/${encodeURIComponent(listing.id)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fake: next }),
+      });
+      if (!res.ok) throw new Error(`patch failed: ${res.status}`);
+    } catch {
+      setFakeOverrides((o) => ({ ...o, [listing.id]: !next }));
+    }
+  };
 
   // District options come from the configured feeds (source of truth), unioned
   // with any districts present in the listings so legacy/delisted rows stay
@@ -60,15 +86,19 @@ export function ViewToggle({
   const districts = Array.from(
     new Set([
       ...feedDistricts,
-      ...listings.map((l) => l.district).filter((d): d is string => !!d),
+      ...items.map((l) => l.district).filter((d): d is string => !!d),
     ]),
   ).sort();
 
-  const delistedCount = listings.filter((l) => l.delistedAt != null).length;
-  const newCount = listings.filter((l) => l.delistedAt == null && isNew(l.timestamp)).length;
+  const delistedCount = items.filter((l) => l.delistedAt != null).length;
+  const fakeCount = items.filter((l) => l.fake).length;
+  const newCount = items.filter((l) => l.delistedAt == null && isNew(l.timestamp)).length;
 
-  const filtered = listings.filter(
-    (l) => (!hideDelisted || l.delistedAt == null) && matchesFilters(l, filters),
+  const filtered = items.filter(
+    (l) =>
+      (!hideDelisted || l.delistedAt == null) &&
+      (!hideFakes || !l.fake) &&
+      matchesFilters(l, filters),
   );
   const ordered = sortListings(filtered, sort);
 
@@ -92,6 +122,13 @@ export function ViewToggle({
     setHideDelisted(checked);
     setPage(1);
   };
+  const toggleHideFakes = (checked: boolean) => {
+    setHideFakes(checked);
+    setPage(1);
+  };
+  // Reflect the current flag in the open modal (the stored `selected` may be stale
+  // after a toggle), and close it if a hidden fake dropped out of the list.
+  const selectedItem = selected ? items.find((l) => l.id === selected.id) ?? null : null;
 
   return (
     <>
@@ -125,6 +162,17 @@ export function ViewToggle({
         )}
 
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-3">
+          {fakeCount > 0 && (
+            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <input
+                type="checkbox"
+                checked={hideFakes}
+                onChange={(e) => toggleHideFakes(e.target.checked)}
+                className="h-4 w-4 accent-danger"
+              />
+              Hide fakes ({fakeCount})
+            </label>
+          )}
           {delistedCount > 0 && (
             <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
               <input
@@ -163,12 +211,13 @@ export function ViewToggle({
       ) : (
         <>
           <div className={view === "grid" ? "" : "hidden"}>
-            <ListingsGrid listings={pageItems} onSelect={setSelected} />
+            <ListingsGrid listings={pageItems} onSelect={setSelected} onToggleFake={toggleFake} />
           </div>
           <div className={view === "table" ? "" : "hidden"}>
             <ListingsTable
               listings={pageItems}
               onSelect={setSelected}
+              onToggleFake={toggleFake}
               sort={sort}
               onSortField={(field: SortField) => applySort(nextSort(sort, field))}
             />
@@ -182,7 +231,13 @@ export function ViewToggle({
         </>
       )}
 
-      {selected && <ListingDetail listing={selected} onClose={() => setSelected(null)} />}
+      {selectedItem && (
+        <ListingDetail
+          listing={selectedItem}
+          onClose={() => setSelected(null)}
+          onToggleFake={toggleFake}
+        />
+      )}
     </>
   );
 }

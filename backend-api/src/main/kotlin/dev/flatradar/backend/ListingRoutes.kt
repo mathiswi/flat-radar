@@ -6,10 +6,16 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+
+/** Body of PATCH /listings/{id}: the fields an operator can toggle on a listing. */
+@Serializable
+data class ListingPatch(val fake: Boolean)
 
 fun Route.listingRoutes(repository: ListingRepository) {
     route("$API_V1/listings") {
@@ -32,6 +38,17 @@ fun Route.listingRoutes(repository: ListingRepository) {
         get {
             val listings = withContext(Dispatchers.IO) { repository.findAll() }
             call.respond(listings)
+        }
+
+        patch("{id}") {
+            val id = call.parameters["id"]!!
+            val patch = call.receive<ListingPatch>()
+            val updated = withContext(Dispatchers.IO) { repository.setFake(id, patch.fake) }
+            if (updated) {
+                call.respond(HttpStatusCode.OK, StatusResponse("updated"))
+            } else {
+                call.respond(HttpStatusCode.NotFound, ErrorResponse("no listing with id '$id'"))
+            }
         }
     }
 }

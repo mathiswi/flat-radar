@@ -32,4 +32,7 @@ data class ApartmentAd(
     /** Epoch millis when the listing was detected as removed from its feed, else null.
      *  Set by the backend's delisting reconcile; the scraper never populates it. */
     val delistedAt: Long? = null,
+    /** User-set flag marking the ad as fake/scam. Toggled from the dashboard
+     *  (PATCH /listings/{id}); the scraper never sets it, hence the default. */
+    val fake: Boolean = false,
 )

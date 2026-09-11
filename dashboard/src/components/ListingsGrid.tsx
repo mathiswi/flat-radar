@@ -8,9 +8,11 @@ import type { Listing } from "@/lib/types";
 export function ListingsGrid({
   listings,
   onSelect,
+  onToggleFake,
 }: {
   listings: Listing[];
   onSelect: (listing: Listing) => void;
+  onToggleFake: (listing: Listing) => void;
 }) {
   if (listings.length === 0) {
     return <EmptyState />;
@@ -19,7 +21,7 @@ export function ListingsGrid({
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map((listing) => (
-        <ListingCard key={listing.id} listing={listing} onSelect={onSelect} />
+        <ListingCard key={listing.id} listing={listing} onSelect={onSelect} onToggleFake={onToggleFake} />
       ))}
     </div>
   );
@@ -28,11 +30,14 @@ export function ListingsGrid({
 function ListingCard({
   listing,
   onSelect,
+  onToggleFake,
 }: {
   listing: Listing;
   onSelect: (listing: Listing) => void;
+  onToggleFake: (listing: Listing) => void;
 }) {
   const delisted = listing.delistedAt != null;
+  const fake = listing.fake;
   const fresh = !delisted && isNew(listing.timestamp);
 
   // One hero photo per card keeps every card the same shape; the rest of the
@@ -52,7 +57,7 @@ function ListingCard({
       type="button"
       onClick={() => onSelect(listing)}
       className={`group flex h-full w-full flex-col overflow-hidden border-2 border-border bg-surface text-left transition-[transform,box-shadow] focus:outline-none focus-visible:ring-2 focus-visible:ring-signal hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--color-border)] ${
-        delisted ? "opacity-60" : ""
+        delisted || fake ? "opacity-60" : ""
       }`}
     >
       <div className="relative aspect-[3/2] border-b border-border bg-surface-2">
@@ -61,24 +66,60 @@ function ListingCard({
             src={lead}
             alt={listing.title}
             fill
-            className={`object-cover ${delisted ? "grayscale" : ""}`}
+            className={`object-cover ${delisted || fake ? "grayscale" : ""}`}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
           <ImagePlaceholder />
         )}
-        {fresh && (
-          <span className="absolute left-0 top-3 bg-signal px-2.5 py-1 text-xs font-extrabold uppercase tracking-widest text-on-signal">
-            New
-          </span>
-        )}
-        {delisted && (
-          <span className="absolute left-0 top-3 bg-border px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-bg">
-            Entfernt
-          </span>
-        )}
+        <div className="absolute left-0 top-3 flex flex-col items-start gap-1">
+          {fresh && (
+            <span className="bg-signal px-2.5 py-1 text-xs font-extrabold uppercase tracking-widest text-on-signal">
+              New
+            </span>
+          )}
+          {delisted && (
+            <span className="bg-border px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-bg">
+              Entfernt
+            </span>
+          )}
+          {fake && (
+            <span className="bg-danger px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-on-signal">
+              Fake
+            </span>
+          )}
+        </div>
         <span className="absolute right-2 top-2 bg-bg/85 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-text backdrop-blur-sm">
           {listing.source}
+        </span>
+        {/* The card itself is a <button>, so the mark control can't be a nested
+            button; a role="button" span with stopPropagation keeps the card
+            clickable while offering its own action. */}
+        <span
+          role="button"
+          tabIndex={0}
+          aria-pressed={fake}
+          aria-label={fake ? "Unmark fake" : "Mark as fake"}
+          title={fake ? "Unmark fake" : "Mark as fake"}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFake(listing);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFake(listing);
+            }
+          }}
+          className={`absolute bottom-2 left-2 inline-flex cursor-pointer items-center gap-1 px-2 py-0.5 text-xs font-bold uppercase tracking-wide backdrop-blur-sm transition-colors ${
+            fake ? "bg-danger text-on-signal" : "bg-bg/85 text-muted hover:text-danger"
+          }`}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill={fake ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+            <path d="M4 21V4h13l-2 4 2 4H4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {fake ? "Fake" : "Flag"}
         </span>
         {images.length > 1 && (
           <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-bg/85 px-2 py-0.5 text-xs font-bold text-text backdrop-blur-sm">
